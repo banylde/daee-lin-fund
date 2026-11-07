@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>六仙出林</title>
+<meta name="theme-color" content="#0f1115"><link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="六仙出林">
+<style>
+/* unslop by Damir Sokolovsky (@heydamir), CC BY 4.0 — 大鹅基金看板家族样式 */
+:root{--bg:#121213;--card:#18181a;--raised:#212124;--line:rgba(237,237,237,.08);--fg:#ededed;--sec:#a1a1a6;--mute:#85858b;--up:#e5484d;--dn:#3fb37f;
+--serif:"Noto Serif CJK SC","Songti SC","STSong",serif;--sans:-apple-system,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;--mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.page{max-width:1440px;margin:0 auto;padding:32px 32px calc(32px + env(safe-area-inset-bottom))}
+header.mast{display:flex;align-items:flex-start;gap:16px;padding-bottom:24px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.seal{flex:none;width:44px;height:44px;border-radius:6px;background:var(--acc);color:#121213;font:500 26px/44px var(--serif);text-align:center}
+.brand{font-size:13px;color:var(--sec);line-height:20px}
+h1{font:500 28px/1.2 var(--serif);margin:0 0 4px;letter-spacing:.02em}
+h2{font-size:15px;font-weight:500;margin:0 0 12px;line-height:22px}
+h3{font-size:15px;font-weight:500;margin:0 0 8px;line-height:22px}
+.mute{color:var(--mute);font-size:12px;line-height:18px}
+#meta{font-family:var(--mono),var(--sans);font-size:12px;color:var(--mute);margin-top:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:0 0 16px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);margin:0 0 16px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:8px 12px;height:36px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+tbody tr:last-child td{border-bottom:0}
+th{position:sticky;top:0;background:var(--raised);cursor:pointer;user-select:none;font-weight:400;font-size:12px;color:var(--mute);transition:color .15s var(--ease)}
+th:hover,th.s{color:var(--fg)}
+td{font-family:var(--mono),var(--sans);font-size:13px}
+td:nth-child(2),th:nth-child(2){text-align:left;position:sticky;left:0;z-index:1;font-family:var(--sans)}
+td:nth-child(2){background:var(--card)}th:nth-child(2){background:var(--raised)}
+.p{color:var(--up)}.n{color:var(--dn)}.in{color:var(--up)}.out{color:var(--dn)}
+.yes{color:var(--sec)}.no{color:var(--mute);opacity:.6}
+.tag{font:12px/18px var(--sans);padding:0 6px;border-radius:4px;margin-left:8px;color:var(--sec);border:1px solid var(--line);background:var(--raised)}
+select{transition:background-color .15s var(--ease),border-color .15s var(--ease)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+footer{margin:32px 0 0;padding-top:16px;border-top:1px solid var(--line);color:var(--mute);font-size:12px;text-align:left}
+@media(max-width:640px){.page{padding:16px 16px calc(24px + env(safe-area-inset-bottom))}h1{font-size:24px}.seal{width:40px;height:40px;font-size:22px;line-height:40px}header.mast{gap:12px;padding-bottom:16px;margin-bottom:16px}.card{padding:16px}th,td{padding:8px 10px}}
+
+:root{--acc:#6fb38a;--acc-ink:#8fc9a5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips span{font-size:13px;line-height:20px;padding:6px 10px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.chips span::after{content:attr(data-c);font-family:var(--mono);color:var(--mute);font-size:12px;margin-left:8px}
+table{min-width:760px}
+tr.top td:first-child{box-shadow:inset 2px 0 0 var(--acc)}
+tr.top td:nth-child(2){color:var(--acc-ink)}
+tbody tr:hover td{background:var(--raised)}
+#rule{font-size:13px;line-height:22px;color:var(--sec)}#rule b{font-weight:500;color:var(--fg)}
+.tag.in{color:var(--up);border-color:rgba(229,72,77,.35);background:transparent}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.cell{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.cell h3 b{font-family:var(--mono);color:var(--acc-ink);font-weight:500;margin-left:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;color:var(--sec)}.kv span:nth-child(odd){color:var(--mute)}
+.warn{color:#e5a84d}.bar{height:6px;background:var(--acc);border-radius:3px;margin-top:2px}
+td:first-child,th:first-child{text-align:left}
+</style></head><body>
+<div class="page">
+<header class="mast"><div class="seal" aria-hidden="true">林</div><div><div class="brand">大鹅基金 · 林部基金定投</div><h1>六仙出林</h1>
+<div id="meta">加载中…</div></div></header>
+<div class="card"><h2>当期六仙（正式名单 · 每季度调仓）</h2><div class="grid" id="six"></div><div class="mute" id="rb" style="margin-top:12px"></div></div>
+<div class="card"><h2>四关漏斗（各类候选池剩余只数）</h2><div class="wrap" style="margin:0"><table id="fun"></table></div><div class="mute" id="fails" style="margin-top:8px"></div></div>
+<div class="card"><h2>组合体检</h2><div id="chk" class="mute"></div></div>
+<div class="card"><h2>各类候选前五（本期打分）</h2><div class="wrap" style="margin:0"><table id="cand"></table></div></div>
+<div class="card mute" id="rule"></div>
+<footer>仅为个人研究工具，不构成投资建议；不含任何持仓或账户信息</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id),n=(v,d=1)=>v==null?'<span class="warn">缺数据</span>':(+v).toFixed(d),pc=v=>v==null?'<span class="warn">缺数据</span>':`<span class="${v>=0?'p':'n'}">${v>0?'+':''}${(+v).toFixed(1)}%</span>`;
+const SUB={stability:"风格稳定",roll_win:"滚动胜率",drawdown:"回撤控制",tenure:"经理年限",fee:"费率"};
+fetch("data/latest.json",{cache:"no-store"}).then(r=>r.json()).then(d=>{const O=d.official,C=d.config,Y=d.years;
+$("meta").textContent=`净值日期 ${d.data_date} · 更新于 ${d.updated_at}（北京时间） · 数据源 ${d.sources.join("/")} · 起始池 ${Object.entries(d.universe).map(([k,v])=>k+" "+v).join("，")}`;
+const S=C.styles;let tw=0;
+$("six").innerHTML=S.map(s=>{const c=O.cards.find(x=>x.style===s);if(!c)return `<div class="cell"><h3>${s}</h3><div class="warn">本类无合格基金</div><div class="mute">见下方漏斗与卡关原因</div></div>`;const w=O.weights[s];tw+=w;
+return `<div class="cell"><h3>${s}<b>${w}%</b></h3><div class="bar" style="width:${w*3}%"></div><div style="margin:8px 0 6px">${c.name} <span class="mute">${c.code}</span></div><div class="kv">
+<span>综合得分</span><span>${n(c.score)}${c.tie_note?' <span class="warn">（'+c.tie_note+'）</span>':''}</span>
+${Object.entries(SUB).map(([k,l])=>`<span>${l}</span><span>${n(c.sub&&c.sub[k],0)}</span>`).join("")}
+<span>经理</span><span>${(c.mgr||[]).join("、")} · 任职${n(c.tenure)}年</span><span>规模</span><span>${n(c.size,2)}亿 · 上季变动${c.scale_mom||"—"}</span>
+<span>费率</span><span>${n(c.fee,2)}%（管理+托管）</span><span>近三年</span><span>${pc(c.r3y)} · 最大回撤 ${pc(c.mdd)} · 年化波动 ${n(c.vol)}%</span>
+<span>自然年</span><span>${Y.map(y=>y+" "+pc(c.years[y])).join(" ")}</span><span>滚动胜率</span><span>${n(c.roll_win*100,0)}%</span>
+<span>重仓特征</span><span>PE ${n(c.feat.pe)} PB ${n(c.feat.pb)} ROE ${n(c.feat.roe)}% 增速 ${n(c.feat.g)}% 股息 ${n(c.feat.dy,2)}%</span>
+<span>风格偏离</span><span>${c.dev?Object.entries(c.dev).map(([k,v])=>k.toUpperCase()+" ±"+(v*100).toFixed(0)+"%").join(" "):"免除"} · 重合${n(c.overlap*100,0)}%</span>
+<span>替换触发</span><span class="${c.triggers&&c.triggers.length?'warn':''}">${c.triggers==null?'—':(c.triggers.length?c.triggers.join("；"):"无")}；换手率缺数据</span></div></div>`}).join("");
+$("rb").innerHTML=`调仓季度 ${O.quarter}，调仓日 ${O.rebalance_date}${O.full_rerun?'（全流程重跑）':''}，下次调仓 ${O.next_rebalance} 之后首次周更；其间冻结，在任者仍过四关且无替换触发则留任。本期变动：${(O.changes||[]).join("；")||"无"}。权重合计 ${tw.toFixed(1)}%`+(tw<99.9?`，余 ${(100-tw).toFixed(1)}% 因单只上限30%或空缺未分配`:"");
+const F=d.funnel,G=["准入","风格稳定","换手率","业绩"];
+$("fun").innerHTML=`<thead><tr><th>风格</th>${G.map(g=>`<th>${g}</th>`).join("")}<th>回撤中位数</th></tr></thead><tbody>`+S.map(s=>`<tr><td>${s}</td>${G.map(g=>`<td>${F[s][g]}</td>`).join("")}<td>${pc(F[s].mdd_median)}</td></tr>`).join("")+"</tbody>";
+$("fails").innerHTML="<b>卡关原因（只数）</b>　"+S.map(s=>s+"："+(Object.entries(d.fails[s]).map(([k,v])=>k+" "+v).join("，")||"—")).join("　｜　")+(d.empty.length?`<br><span class="warn">本类无合格基金：${d.empty.join("、")}（未放宽门槛，待裁定）</span>`:"");
+const K=d.check,cd=K.corr_dist;
+$("chk").innerHTML=`<div>重合/行业检查：${K.log.length?K.log.join("；"):"六只之间前十大重合与单一行业重合均未超20%"}</div><div>月度收益平均相关系数：<b>${n(K.avg_corr,3)}</b>（阈值<${C.check.corr_max}）　两两：${Object.entries(K.corr_matrix).map(([k,v])=>k+" "+v).join("，")||"—"}</div><div>相关系数实测分布（各类前5候选两两，n=${cd.n}）：最小 ${cd.min} · 25% ${cd.p25} · 中位 ${cd.median} · 75% ${cd.p75} · 最大 ${cd.max}</div><div>${K.fx}</div>`;
+$("cand").innerHTML=`<thead><tr><th>风格</th><th>名称</th><th>代码</th><th>得分</th>${Object.values(SUB).map(l=>`<th>${l}</th>`).join("")}<th>近三年</th><th>最大回撤</th><th>规模(亿)</th></tr></thead><tbody>`+S.flatMap(s=>d.candidates[s].map((c,i)=>`<tr class="${i==0?'top':''}"><td>${s}</td><td>${c.name}</td><td>${c.code}</td><td>${n(c.score)}</td>${Object.keys(SUB).map(k=>`<td>${n(c.sub[k],0)}</td>`).join("")}<td>${pc(c.r3y)}</td><td>${pc(c.mdd)}</td><td>${n(c.size,2)}</td></tr>`)).join("")+"</tbody>";
+$("rule").innerHTML=`<b>方案与口径</b><br>
+①准入：成立满${C.gate1.min_years}年、现任经理（取任职最久者）连续任职满${C.gate1.min_tenure}年、净资产${C.gate1.size_min}~${C.gate1.size_max}亿；只取A类/主份额，剔除名称含持有期/封闭/定开/养老/目标日期的产品；类型限股票型、偏股/灵活配置混合、QDII股票/偏股混合。<br>
+②风格稳定：近${C.gate2.quarters}个季报，<b>持仓加权指标用前十大重仓近似</b>（季报只披露前十大），且个股PE/PB/ROE/盈利增速取<b>当前</b>TradingView数值（缺历史时点数据），所以本关衡量的是持仓构成的漂移，不是估值随时间的变化；各指标与自身12季均值偏离≤±30%，前十大相邻季度平均重合≥30%（“稳定”的临时定义）。<span class="warn">趋势类免除本关，只看换手率、业绩和回撤，属临时口径，待裁定。</span><br>
+③换手率：<span class="warn">缺数据</span>，天天基金未提供年报换手率，本关暂不执行、全部放行，待接入年报数据。<br>
+④业绩：同类=本看板同风格且过准入的基金；近三年收益排名前1/3、${Y.join("/")}每个自然年不落后1/3、近三年最大回撤不差于同类中位数、近24个月滚动一年收益进同类前50%的月份≥60%。收益按天天基金日收益率复利（含分红再投）。<br>
+风格归类：QDII→海外；前十大中前三行业（TradingView行业）合计占净值>50%→主题；其余按重仓特征在池内百分位取最高：成长=增速+低PEG，质量=ROE，价值=低PB+低PE+股息率，趋势=前十大季度重合度低（换手率缺数据时的替代）。<br>
+打分：风格稳定性30%、滚动胜率25%、回撤控制20%、经理年限15%、费率10%，各项池内排名折算0~100；趋势类风格稳定项统一记50。前两名差<${C.tie_gap}分时选风格偏离更小、规模更稳的。<br>
+体检：前十大重仓或单一行业重合>20%换掉得分低者；六只近三年月度收益平均相关≥0.8换掉相关最高者。权重按近三年月度波动率倒数，单只${C.weight.min}%~${C.weight.max}%。<br>
+替换触发：经理变更、规模单季变动超±50%、风格连续两季超±30%、换手超限（缺数据）、近一年同类后1/3且持续两年；新基金须完整通过四关。`;})
+.catch(e=>$("meta").textContent="数据加载失败："+e);
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+</script></body></html>

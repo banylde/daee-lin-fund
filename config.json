@@ -1,0 +1,14 @@
+{
+ "styles": ["成长", "趋势", "质量", "价值", "主题", "海外"],
+ "turnover_cap": {"成长": 300, "趋势": 500, "质量": 150, "价值": 150, "主题": 300, "海外": 300},
+ "gate1": {"min_years": 5, "min_tenure": 3, "size_min": 2, "size_max": 100},
+ "gate2": {"quarters": 12, "band": 0.30, "min_overlap": 0.30, "trend_exempt": true},
+ "gate4": {"top_frac": 0.3333, "roll_win_min": 0.60},
+ "score_w": {"stability": 30, "roll_win": 25, "drawdown": 20, "tenure": 15, "fee": 10},
+ "tie_gap": 3,
+ "check": {"overlap_max": 20, "industry_max": 20, "corr_max": 0.8},
+ "weight": {"min": 5, "max": 30},
+ "rebalance": {"freq": "quarterly", "months": [1, 4, 7, 10], "day": 25,
+   "basis": "季报披露后（1/4/7/10月25日之后的首次周更）", "annual_full_month": 1,
+   "_note": "正式六仙每季度调仓一次、其间冻结；在任者仍过四关且无替换触发则留任；每年1月全流程重跑取各类第一"}
+}
