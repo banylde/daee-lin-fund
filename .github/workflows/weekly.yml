@@ -19,11 +19,13 @@ jobs:
           python-version: "3.12"
       - name: 抓数
         run: WORKERS=12 python scripts/fetch.py
+      - name: 换手率（2025年报，已缓存的不重抓）
+        run: sudo apt-get install -y poppler-utils && python scripts/turnover.py
       - name: 筛选打分
         run: python scripts/build.py
       - name: 提交
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/latest.json data/official.json
+          git add data/latest.json data/official.json data/turnover.json
           if git diff --cached --quiet; then echo "无变化"; else git commit -m "data: $(TZ=Asia/Shanghai date '+%F %H:%M') 更新" && git push; fi

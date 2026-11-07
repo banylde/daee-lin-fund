@@ -1,5 +1,5 @@
 """六仙出林 筛选打分：读 data/raw.json → data/latest.json + data/official.json"""
-import json, os, sys, math, statistics as st, datetime as dt
+import json, os, re, sys, math, statistics as st, datetime as dt
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 C = json.load(open(os.path.join(ROOT, "config.json")))
 RAW = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "data", "raw.json")))
@@ -107,7 +107,7 @@ for r in pool:
     r["feat"] = {k: avg(k) for k in ["pe", "pb", "roe", "g", "dy"]}
     hs = [set(c for c, _, _ in h) for _, h in list(r["_raw"]["hold"].items())[-C["gate2"]["quarters"]:]]
     ov = [len(hs[i] & hs[i - 1]) / 10 for i in range(1, len(hs))]
-    r["overlap"] = round(sum(ov) / len(ov), 2) if ov else None
+    r["overlap"] = round(sum(ov) / len(ov), 3) if ov else None; r["ov_list"] = ov
 rest = [r for r in pool if r["style"] is None]
 if rest:
     fe = lambda k: [r["feat"][k] for r in rest]
@@ -119,23 +119,26 @@ if rest:
         r["aff"] = {k: round(v, 1) for k, v in aff.items()}; r["style"] = max(aff, key=aff.get)
 
 # ---------- 四关 ----------
+QUANT = re.compile(C["gate2"]["quant_pat"])
+TO = json.load(open(os.path.join(ROOT, "data", "turnover.json"))) if os.path.exists(os.path.join(ROOT, "data", "turnover.json")) else {}
 def gate2(r):
-    band = C["gate2"]["band"]; qm = r["qm"]; dev = {}
-    if len(qm) < C["gate2"]["quarters"]: return False, f"季报仅{len(qm)}期", None
-    if min(m["cov"] for m in qm) < 0.5: return False, "缺数据：重仓指标覆盖<50%", None
-    for k in ["pe", "pb", "roe", "g"]:
-        v = [m[k] for m in qm if m[k] is not None]
-        mu = st.mean(v); dev[k] = round(max(abs(x - mu) for x in v) / abs(mu), 3) if mu else 9
-    r["dev"] = dev; r["purity"] = round(st.mean(dev.values()), 3)
-    bad = [k for k, d in dev.items() if d > band]
-    if r["style"] == "趋势" and C["gate2"]["trend_exempt"]: return True, "趋势类免除（临时口径）", dev
-    if bad: return False, "波动超±30%：" + "/".join(bad), dev
-    if (r["overlap"] or 0) < C["gate2"]["min_overlap"]: return False, f"前十大季度重合{r['overlap']}<{C['gate2']['min_overlap']}", dev
-    return True, "", dev
-
+    if r["style"] in C["gate2"]["exempt"]: return True, f"{r['style']}类免除", None
+    if len(r["ov_list"]) < C["gate2"]["quarters"] - 1: return False, f"季报仅{len(r['ov_list']) + 1}期", None
+    r["purity"] = round(1 - r["overlap"], 3)
+    if r["overlap"] < C["gate2"]["min_overlap"]: return False, f"前十大重合度<{C['gate2']['min_overlap']:.0%}", None
+    return True, "", None
+def gate3(r):
+    t = TO.get(r["code"]) or {}; r["turnover"] = t.get("rate")
+    if r["turnover"] is None: return False, "缺换手率"
+    if r["turnover"] > C["turnover_cap"][r["style"]]: return False, "换手率超限"
+    return True, ""
+OVD = sorted(r["overlap"] for r in pool if r["overlap"] is not None and r["style"] not in C["gate2"]["exempt"])
+for r in pool:
+    if r["style"] == "趋势" and QUANT.search(r["name"] + (r["type"] or "")): r["style"] = None; r["quant_out"] = True
+EXCL = sum(1 for r in pool if r.get("quant_out")); pool = [r for r in pool if r["style"]]
 for r in pool:
     r["perf"] = perf(r["_raw"]); r["g2"], r["g2_why"], _ = gate2(r)
-    r["g3"] = True; r["g3_why"] = "缺数据：换手率未取得，本关暂不执行"
+    r["g3"], r["g3_why"] = gate3(r)
 FUNNEL, CANDS = {}, {}
 for s in STY:
     grp = [r for r in pool if r["style"] == s]
@@ -165,12 +168,13 @@ for s in STY:
         vals = [r["perf"][key] for r in peers]; sc = pct_rank(vals)
         for i, r in enumerate(peers): r[key + "_pct"] = sc[i]
     a = len(grp); b = sum(1 for r in grp if r["g2"]); c3 = sum(1 for r in grp if r["g2"] and r["g3"])
+    to_cov = sum(1 for r in grp if r.get("turnover") is not None)
     ok = [r for r in grp if r["g2"] and r["g3"] and r.get("g4")]
-    FUNNEL[s] = {"准入": a, "风格稳定": b, "换手率": c3, "业绩": len(ok), "mdd_median": mdd_med, "peers": n}
+    FUNNEL[s] = {"准入": a, "风格稳定": b, "换手率": c3, "业绩": len(ok), "mdd_median": mdd_med, "peers": n, "换手率覆盖": f"{to_cov}/{a}"}
     # 打分
     if ok:
         W = C["score_w"]
-        stab = pct_rank([r["purity"] if r["style"] != "趋势" else None for r in ok], False) if s != "趋势" else [50.0] * len(ok)
+        stab = pct_rank([r["purity"] for r in ok], False) if s not in C["gate2"]["exempt"] else [50.0] * len(ok)
         win = pct_rank([r["roll_win"] for r in ok]); dd = pct_rank([r["perf"]["mdd"] for r in ok])
         ten = pct_rank([r["tenure"] for r in ok]); fee = pct_rank([r["fee"] for r in ok], False)
         for i, r in enumerate(ok):
@@ -261,11 +265,8 @@ def trig(r, o=None):
     t = []
     if o and set(o.get("mgr") or []) != set(r["mgr"] or []): t.append("经理变更")
     if r["scale_mom"] and abs(float(r["scale_mom"].strip("%"))) > 50: t.append(f"规模单季变动{r['scale_mom']}")
-    if r.get("dev") is not None and len(r["qm"]) >= 3:
-        bad = 0
-        for m in r["qm"][-2:]:
-            if any(m[k] is not None and r["dev"] is not None and abs(m[k] - st.mean([x[k] for x in r["qm"] if x[k] is not None])) / abs(st.mean([x[k] for x in r["qm"] if x[k] is not None]) or 1) > C["gate2"]["band"] for k in ["pe", "pb", "roe", "g"]): bad += 1
-        if bad == 2 and r["style"] != "趋势": t.append("风格连续两季超±30%")
+    if r["style"] not in C["gate2"]["exempt"] and len(r["ov_list"]) >= 2 and all(x < C["gate2"]["min_overlap"] for x in r["ov_list"][-2:]): t.append("前十大重合度连续两季低于阈值")
+    if r.get("turnover") is not None and r["turnover"] > C["turnover_cap"][r["style"]]: t.append("换手率超限")
     if r.get("r1y_pct") is not None and r["r1y_pct"] < 33.3 and (r.get("r1y_prev_pct") or 100) < 33.3: t.append("近一年同类后1/3且持续两年")
     return t
 newsel = cur()
@@ -293,7 +294,7 @@ def card(r, s):
     return {"style": s, "code": r["code"], "name": r["name"], "type": r["type"], "mgr": r["mgr"], "tenure": r["tenure"], "size": r["size"],
             "fee": r["fee"], "score": r.get("score"), "sub": r.get("sub"), "r3y": r["perf"]["r3y"], "mdd": r["perf"]["mdd"], "vol": r["perf"]["vol"],
             "roll_win": r.get("roll_win"), "years": {str(y): r["perf"][str(y)] for y in YEARS}, "purity": r.get("purity"), "dev": r.get("dev"),
-            "overlap": r.get("overlap"), "feat": {k: (round(v, 2) if v is not None else None) for k, v in r["feat"].items()},
+            "overlap": r.get("overlap"), "turnover": r.get("turnover"), "feat": {k: (round(v, 2) if v is not None else None) for k, v in r["feat"].items()},
             "top3_sector": r.get("top3_sector"), "last_q": r["quarters"][-1], "nq": len(r["quarters"]), "scale_mom": r["scale_mom"],
             "triggers": trig(r, o) if o else None, "tie_note": r.get("tie_note"), "g4_why": r.get("g4_why")}
 out = {
@@ -304,13 +305,15 @@ out = {
         "cards": [card(offr[s], s) for s in STY if s in offr]},
     "candidates": {s: [card(r, s) for r in CANDS[s][:5]] for s in STY},
     "check": CHECK, "empty": [s for s in STY if not CANDS[s]],
-    "fails": {s: {} for s in STY},
+    "fails": {s: {} for s in STY}, "quant_excluded": EXCL,
+    "overlap_dist": {k: OVD[int(q * (len(OVD) - 1))] for k, q in [("p10", .1), ("p25", .25), ("median", .5), ("p75", .75), ("p90", .9)]} | {"n": len(OVD)},
+    "turnover_cov": {"有换手率": sum(1 for r in pool if r.get("turnover") is not None), "过准入": len(pool) + EXCL, "年报": 2025},
     "config": C,
 }
 for r in pool:
-    if r["style"] and not (r["g2"] and r.get("g4")):
-        why = r["g2_why"] if not r["g2"] else r["g4_why"]
+    if r["style"] and not (r["g2"] and r["g3"] and r.get("g4")):
+        why = r["g2_why"] if not r["g2"] else (r["g3_why"] if not r["g3"] else r["g4_why"])
         for w in why.split("；"):
             k = w.split("：")[0][:14]; out["fails"][r["style"]][k] = out["fails"][r["style"]].get(k, 0) + 1
 json.dump(out, open(os.path.join(ROOT, "data", "latest.json"), "w"), ensure_ascii=False, indent=1)
-print(json.dumps({"funnel": FUNNEL, "empty": out["empty"], "official": [(c["style"], c["code"], c["name"], c["score"], W8.get(c["style"])) for c in out["official"]["cards"]], "check": {k: CHECK[k] for k in ["log", "avg_corr", "corr_dist"]}, "fails": out["fails"]}, ensure_ascii=False, indent=1))
+print(json.dumps({"funnel": FUNNEL, "empty": out["empty"], "official": [(c["style"], c["code"], c["name"], c["score"], W8.get(c["style"])) for c in out["official"]["cards"]], "check": {k: CHECK[k] for k in ["log", "avg_corr", "corr_dist"]}, "fails": out["fails"], "ovd": out["overlap_dist"], "cov": out["turnover_cov"], "quant": EXCL}, ensure_ascii=False, indent=1))

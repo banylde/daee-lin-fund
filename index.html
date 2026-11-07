@@ -79,24 +79,24 @@ ${Object.entries(SUB).map(([k,l])=>`<span>${l}</span><span>${n(c.sub&&c.sub[k],0
 <span>费率</span><span>${n(c.fee,2)}%（管理+托管）</span><span>近三年</span><span>${pc(c.r3y)} · 最大回撤 ${pc(c.mdd)} · 年化波动 ${n(c.vol)}%</span>
 <span>自然年</span><span>${Y.map(y=>y+" "+pc(c.years[y])).join(" ")}</span><span>滚动胜率</span><span>${n(c.roll_win*100,0)}%</span>
 <span>重仓特征</span><span>PE ${n(c.feat.pe)} PB ${n(c.feat.pb)} ROE ${n(c.feat.roe)}% 增速 ${n(c.feat.g)}% 股息 ${n(c.feat.dy,2)}%</span>
-<span>风格偏离</span><span>${c.dev?Object.entries(c.dev).map(([k,v])=>k.toUpperCase()+" ±"+(v*100).toFixed(0)+"%").join(" "):"免除"} · 重合${n(c.overlap*100,0)}%</span>
-<span>替换触发</span><span class="${c.triggers&&c.triggers.length?'warn':''}">${c.triggers==null?'—':(c.triggers.length?c.triggers.join("；"):"无")}；换手率缺数据</span></div></div>`}).join("");
+<span>前十大重合</span><span>${n(c.overlap*100,0)}%${C.gate2.exempt.includes(s)?"（本类免除风格关）":""}</span><span>换手率</span><span>${c.turnover==null?'<span class="warn">缺换手率</span>':c.turnover+"%（2025年报，上限"+C.turnover_cap[s]+"%）"}</span>
+<span>替换触发</span><span class="${c.triggers&&c.triggers.length?'warn':''}">${c.triggers==null?'—':(c.triggers.length?c.triggers.join("；"):"无")}</span></div></div>`}).join("");
 $("rb").innerHTML=`调仓季度 ${O.quarter}，调仓日 ${O.rebalance_date}${O.full_rerun?'（全流程重跑）':''}，下次调仓 ${O.next_rebalance} 之后首次周更；其间冻结，在任者仍过四关且无替换触发则留任。本期变动：${(O.changes||[]).join("；")||"无"}。权重合计 ${tw.toFixed(1)}%`+(tw<99.9?`，余 ${(100-tw).toFixed(1)}% 因单只上限30%或空缺未分配`:"");
 const F=d.funnel,G=["准入","风格稳定","换手率","业绩"];
 $("fun").innerHTML=`<thead><tr><th>风格</th>${G.map(g=>`<th>${g}</th>`).join("")}<th>回撤中位数</th></tr></thead><tbody>`+S.map(s=>`<tr><td>${s}</td>${G.map(g=>`<td>${F[s][g]}</td>`).join("")}<td>${pc(F[s].mdd_median)}</td></tr>`).join("")+"</tbody>";
 $("fails").innerHTML="<b>卡关原因（只数）</b>　"+S.map(s=>s+"："+(Object.entries(d.fails[s]).map(([k,v])=>k+" "+v).join("，")||"—")).join("　｜　")+(d.empty.length?`<br><span class="warn">本类无合格基金：${d.empty.join("、")}（未放宽门槛，待裁定）</span>`:"");
 const K=d.check,cd=K.corr_dist;
 $("chk").innerHTML=`<div>重合/行业检查：${K.log.length?K.log.join("；"):"六只之间前十大重合与单一行业重合均未超20%"}</div><div>月度收益平均相关系数：<b>${n(K.avg_corr,3)}</b>（阈值<${C.check.corr_max}）　两两：${Object.entries(K.corr_matrix).map(([k,v])=>k+" "+v).join("，")||"—"}</div><div>相关系数实测分布（各类前5候选两两，n=${cd.n}）：最小 ${cd.min} · 25% ${cd.p25} · 中位 ${cd.median} · 75% ${cd.p75} · 最大 ${cd.max}</div><div>${K.fx}</div>`;
-$("cand").innerHTML=`<thead><tr><th>风格</th><th>名称</th><th>代码</th><th>得分</th>${Object.values(SUB).map(l=>`<th>${l}</th>`).join("")}<th>近三年</th><th>最大回撤</th><th>规模(亿)</th></tr></thead><tbody>`+S.flatMap(s=>d.candidates[s].map((c,i)=>`<tr class="${i==0?'top':''}"><td>${s}</td><td>${c.name}</td><td>${c.code}</td><td>${n(c.score)}</td>${Object.keys(SUB).map(k=>`<td>${n(c.sub[k],0)}</td>`).join("")}<td>${pc(c.r3y)}</td><td>${pc(c.mdd)}</td><td>${n(c.size,2)}</td></tr>`)).join("")+"</tbody>";
+$("cand").innerHTML=`<thead><tr><th>风格</th><th>名称</th><th>代码</th><th>得分</th>${Object.values(SUB).map(l=>`<th>${l}</th>`).join("")}<th>近三年</th><th>最大回撤</th><th>换手率%</th><th>规模(亿)</th></tr></thead><tbody>`+S.flatMap(s=>d.candidates[s].map((c,i)=>`<tr class="${i==0?'top':''}"><td>${s}</td><td>${c.name}</td><td>${c.code}</td><td>${n(c.score)}</td>${Object.keys(SUB).map(k=>`<td>${n(c.sub[k],0)}</td>`).join("")}<td>${pc(c.r3y)}</td><td>${pc(c.mdd)}</td><td>${n(c.turnover)}</td><td>${n(c.size,2)}</td></tr>`)).join("")+"</tbody>";
 $("rule").innerHTML=`<b>方案与口径</b><br>
 ①准入：成立满${C.gate1.min_years}年、现任经理（取任职最久者）连续任职满${C.gate1.min_tenure}年、净资产${C.gate1.size_min}~${C.gate1.size_max}亿；只取A类/主份额，剔除名称含持有期/封闭/定开/养老/目标日期的产品；类型限股票型、偏股/灵活配置混合、QDII股票/偏股混合。<br>
-②风格稳定：近${C.gate2.quarters}个季报，<b>持仓加权指标用前十大重仓近似</b>（季报只披露前十大），且个股PE/PB/ROE/盈利增速取<b>当前</b>TradingView数值（缺历史时点数据），所以本关衡量的是持仓构成的漂移，不是估值随时间的变化；各指标与自身12季均值偏离≤±30%，前十大相邻季度平均重合≥30%（“稳定”的临时定义）。<span class="warn">趋势类免除本关，只看换手率、业绩和回撤，属临时口径，待裁定。</span><br>
-③换手率：<span class="warn">缺数据</span>，天天基金未提供年报换手率，本关暂不执行、全部放行，待接入年报数据。<br>
+②风格稳定：近${C.gate2.quarters}个季报前十大重仓（季报只披露前十大），相邻季度重合只数/10的平均值≥<b>${(C.gate2.min_overlap*100).toFixed(0)}%</b>（平均每季至少保留5只）。阈值据实测分布定：n=${d.overlap_dist.n}，10%分位 ${d.overlap_dist.p10}、25% ${d.overlap_dist.p25}、中位 ${d.overlap_dist.median}、75% ${d.overlap_dist.p75}。不再使用PE/PB/增速±30%。趋势类、海外类免除本关；趋势类排除名称或类型含量化/指数增强/增强/多因子的基金（本期排除${d.quant_excluded}只）。<br>
+③换手率：取<b>2025年报</b>，按年报8.4.3“买入股票成本总额+卖出股票收入总额”÷2，除以资产负债表股票投资期初期末均值计算（年报未直接披露换手率）；不超过本类上限才通过，<span class="warn">取不到记为“缺换手率”不通过</span>。覆盖：${d.turnover_cov.有换手率}/${d.turnover_cov.过准入}只。<br>
 ④业绩：同类=本看板同风格且过准入的基金；近三年收益排名前1/3、${Y.join("/")}每个自然年不落后1/3、近三年最大回撤不差于同类中位数、近24个月滚动一年收益进同类前50%的月份≥60%。收益按天天基金日收益率复利（含分红再投）。<br>
-风格归类：QDII→海外；前十大中前三行业（TradingView行业）合计占净值>50%→主题；其余按重仓特征在池内百分位取最高：成长=增速+低PEG，质量=ROE，价值=低PB+低PE+股息率，趋势=前十大季度重合度低（换手率缺数据时的替代）。<br>
-打分：风格稳定性30%、滚动胜率25%、回撤控制20%、经理年限15%、费率10%，各项池内排名折算0~100；趋势类风格稳定项统一记50。前两名差<${C.tie_gap}分时选风格偏离更小、规模更稳的。<br>
+风格归类：QDII→海外；前十大中前三行业（TradingView行业）合计占净值>50%→主题；其余按重仓特征在池内百分位取最高：成长=增速+低PEG，质量=ROE，价值=低PB+低PE+股息率，趋势=前十大季度重合度低。<br>
+打分：风格稳定性30%、滚动胜率25%、回撤控制20%、经理年限15%、费率10%，各项池内排名折算0~100；趋势、海外类风格稳定项统一记50。前两名差<${C.tie_gap}分时选前十大重合度更高、规模更稳的。<br>
 体检：前十大重仓或单一行业重合>20%换掉得分低者；六只近三年月度收益平均相关≥0.8换掉相关最高者。权重按近三年月度波动率倒数，单只${C.weight.min}%~${C.weight.max}%。<br>
-替换触发：经理变更、规模单季变动超±50%、风格连续两季超±30%、换手超限（缺数据）、近一年同类后1/3且持续两年；新基金须完整通过四关。`;})
+替换触发：经理变更、规模单季变动超±50%、风格连续两季超±30%、换手超限、近一年同类后1/3且持续两年；新基金须完整通过四关。`;})
 .catch(e=>$("meta").textContent="数据加载失败："+e);
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
 </script></body></html>
