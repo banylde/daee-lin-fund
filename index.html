@@ -53,12 +53,21 @@ tbody tr:hover td{background:var(--raised)}
 .cell h3 b{font-family:var(--mono);color:var(--acc-ink);font-weight:500;margin-left:8px}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;color:var(--sec)}.kv span:nth-child(odd){color:var(--mute)}
 .warn{color:#e5a84d}.bar{height:6px;background:var(--acc);border-radius:3px;margin-top:2px}
+.fillnote{margin:8px 0 0;font-size:13px;line-height:20px;color:var(--sec)}
+.stale{display:none;margin:0 0 16px;padding:14px 16px;border-radius:10px;background:rgba(229,168,77,.16);border:1px solid rgba(229,168,77,.7);color:#e5a84d}
+.stale.on{display:block}.stale b{display:block;font-size:18px;line-height:26px;letter-spacing:.12em;font-weight:600}
+.stale .mute{color:#e5a84d;opacity:.9}
+#hist td:nth-child(2),#hist th:nth-child(2){position:static}
 td:first-child,th:first-child{text-align:left}
 </style></head><body>
 <div class="page">
 <header class="mast"><div class="seal" aria-hidden="true">林</div><div><div class="brand">大鹅基金 · 林部基金定投</div><h1>六仙出林</h1>
-<div id="meta">加载中…</div></div></header>
+<div id="meta">加载中…</div>
+<p class="fillnote">纸面成交：信号在信号日收盘后计算，按下一交易日开盘（T+1 开盘）成交。开放式基金看板不设涨跌停跳过。</p>
+</div></header>
+<div id="stale" class="stale"><b>数据过期</b><div id="stale-why" class="mute"></div></div>
 <div class="card"><h2>当期六仙（正式名单 · 每季度调仓）</h2><div class="grid" id="six"></div><div class="mute" id="rb" style="margin-top:12px"></div></div>
+<div class="card"><h2>调仓记录</h2><div class="wrap" style="margin:0"><table id="hist"></table></div><div class="mute" id="histnote" style="margin-top:8px"></div></div>
 <div class="card"><h2>四关漏斗（各类候选池剩余只数）</h2><div class="wrap" style="margin:0"><table id="fun"></table></div><div class="mute" id="fails" style="margin-top:8px"></div></div>
 <div class="card"><h2>组合体检</h2><div id="chk" class="mute"></div></div>
 <div class="card"><h2>各类候选前五（本期打分）</h2><div class="wrap" style="margin:0"><table id="cand"></table></div></div>
@@ -68,11 +77,31 @@ td:first-child,th:first-child{text-align:left}
 <script>
 const $=id=>document.getElementById(id),n=(v,d=1)=>v==null?'<span class="warn">缺数据</span>':(+v).toFixed(d),pc=v=>v==null?'<span class="warn">缺数据</span>':`<span class="${v>=0?'p':'n'}">${v>0?'+':''}${(+v).toFixed(1)}%</span>`;
 const SUB={stability:"风格稳定",roll_win:"滚动胜率",drawdown:"回撤控制",tenure:"经理年限",fee:"费率"};
-fetch("data/latest.json",{cache:"no-store"}).then(r=>r.json()).then(d=>{const O=d.official,C=d.config,Y=d.years;
+function applyStale(d, live){
+ const day=live||d.latest_trading_day||"";
+ const lag=!!(day&&d.data_date&&d.data_date<day);
+ const on=!!(d.stale||lag);
+ $("stale").classList.toggle("on", on);
+ if(!on){$("stale-why").textContent="";return}
+ const bits=[];
+ if(d.stale_reason)bits.push(d.stale_reason);
+ if(lag&&!(d.stale_reason||"").includes(String(day)))bits.push("净值日期 "+d.data_date+" 落后于最近A股交易日 "+day);
+ if(!bits.length)bits.push("标记为数据过期");
+ $("stale-why").textContent=bits.join("；");
+}
+const KURLS=["https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&klt=101&fqt=1&lmt=1&end=20500101&fields1=f1&fields2=f51","https://91.push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&klt=101&fqt=1&lmt=1&end=20500101&fields1=f1&fields2=f51"];
+function kday(u){return fetch(u,{cache:"no-store"}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{const s=String((((j||{}).data||{}).klines||[])[0]||"").split(",")[0];if(!/^\d{4}-\d{2}-\d{2}$/.test(s))throw 0;return s})}
+Promise.all([
+ fetch("data/latest.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("latest.json "+r.status);return r.json()}),
+ fetch("data/history.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw 0;return r.json()}).catch(()=>({events:[],_err:1}))
+]).then(([d,H])=>{const O=d.official,C=d.config,Y=d.years;
+applyStale(d,null);
+kday(KURLS[0]).catch(()=>kday(KURLS[1])).then(day=>applyStale(d,day)).catch(()=>{});
 $("meta").textContent=`净值日期 ${d.data_date} · 更新于 ${d.updated_at}（北京时间） · 数据源 ${d.sources.join("/")} · 起始池 ${Object.entries(d.universe).map(([k,v])=>k+" "+v).join("，")}`;
 const S=C.styles;let tw=0;
-$("six").innerHTML=S.map(s=>{const c=O.cards.find(x=>x.style===s);if(!c)return `<div class="cell"><h3>${s}</h3><div class="warn">本类无合格基金</div><div class="mute">见下方漏斗与卡关原因</div></div>`;const w=O.weights[s];tw+=w;
-return `<div class="cell"><h3>${s}<b>${w}%</b></h3><div class="bar" style="width:${w*3}%"></div><div style="margin:8px 0 6px">${c.name} <span class="mute">${c.code}</span></div><div class="kv">
+$("six").innerHTML=S.map(s=>{const c=O.cards.find(x=>x.style===s);if(!c)return `<div class="cell"><h3>${s}</h3><div class="warn">本类无合格基金</div><div class="mute">见下方漏斗与卡关原因</div></div>`;const w=c.weight!=null?+c.weight:(O.weights&&O.weights[s]!=null?+O.weights[s]:null);if(w!=null)tw+=w;const wtxt=w==null?'<span class="warn">缺数据</span>':w+"%";
+return `<div class="cell"><h3>${s}<b>${wtxt}</b></h3><div class="bar" style="width:${w==null?0:w*3}%"></div><div style="margin:8px 0 6px">${c.name} <span class="mute">${c.code}</span> <span class="tag">权重 ${wtxt}</span></div><div class="kv">
+<span>权重</span><span>${wtxt}</span>
 <span>综合得分</span><span>${n(c.score)}${c.tie_note?' <span class="warn">（'+c.tie_note+'）</span>':''}</span>
 ${Object.entries(SUB).map(([k,l])=>`<span>${l}</span><span>${n(c.sub&&c.sub[k],0)}</span>`).join("")}
 <span>经理</span><span>${(c.mgr||[]).join("、")} · 任职${n(c.tenure)}年</span><span>规模</span><span>${n(c.size,2)}亿 · 上季变动${c.scale_mom||"—"}</span>
@@ -82,6 +111,11 @@ ${Object.entries(SUB).map(([k,l])=>`<span>${l}</span><span>${n(c.sub&&c.sub[k],0
 <span>前十大重合</span><span>${n(c.overlap*100,0)}%${C.gate2.exempt.includes(s)?"（本类免除风格关）":""}</span><span>换手率</span><span>${c.turnover==null?'<span class="warn">缺换手率</span>':c.turnover+"%（2025年报，上限"+C.turnover_cap[s]+"%）"}</span>
 <span>替换触发</span><span class="${c.triggers&&c.triggers.length?'warn':''}">${c.triggers==null?'—':(c.triggers.length?c.triggers.join("；"):"无")}</span></div></div>`}).join("");
 $("rb").innerHTML=`调仓季度 ${O.quarter}，调仓日 ${O.rebalance_date}${O.full_rerun?'（全流程重跑）':''}，下次调仓 ${O.next_rebalance} 之后首次周更；其间冻结，在任者仍过四关且无替换触发则留任。本期变动：${(O.changes||[]).join("；")||"无"}。权重合计 ${tw.toFixed(1)}%`+(tw<99.9?`，余 ${(100-tw).toFixed(1)}% 因单只上限30%或空缺未分配`:"");
+const leg=xs=>(xs&&xs.length)?xs.map(x=>`${x.style||""} ${x.name||""} ${x.code||""}${x.weight!=null?" "+x.weight+"%":""}`).join("；"):"—";
+const wbook=w=>!w?"—":Object.entries(w).map(([k,v])=>k+" "+(v==null?'<span class="warn">缺数据</span>':v+"%")).join(" ");
+const ev=H.events||[];
+$("hist").innerHTML=`<thead><tr><th>日期</th><th>季度</th><th>调入</th><th>调出</th><th>调仓后权重</th><th>原因</th></tr></thead><tbody>`+(ev.length?ev.map(e=>`<tr><td>${e.date||"—"}</td><td>${e.quarter||"—"}</td><td>${leg(e.in)}</td><td>${leg(e.out)}</td><td>${wbook(e.weights)}</td><td>${[e.reason].concat((e.changes||[]).filter(c=>c&&c!==e.reason)).filter(Boolean).join("；")||"—"}${e.source?' <span class="mute">'+e.source+'</span>':''}</td></tr>`).join(""):'<tr><td colspan="6">尚无已记录的调仓</td></tr>')+"</tbody>";
+$("histnote").textContent=H._err?"调仓记录没有读到，不展示推断的交易。":"只列出已经写入正式名单的调仓；调入、调出和权重来自当时的名单与波动率倒数权重，没有补写未落账的交易。";
 const F=d.funnel,G=["准入","风格稳定","换手率","业绩"];
 $("fun").innerHTML=`<thead><tr><th>风格</th>${G.map(g=>`<th>${g}</th>`).join("")}<th>回撤中位数</th></tr></thead><tbody>`+S.map(s=>`<tr><td>${s}</td>${G.map(g=>`<td>${F[s][g]}</td>`).join("")}<td>${pc(F[s].mdd_median)}</td></tr>`).join("")+"</tbody>";
 $("fails").innerHTML="<b>卡关原因（只数）</b>　"+S.map(s=>s+"："+(Object.entries(d.fails[s]).map(([k,v])=>k+" "+v).join("，")||"—")).join("　｜　")+(d.empty.length?`<br><span class="warn">本类无合格基金：${d.empty.join("、")}（未放宽门槛，待裁定）</span>`:"");
@@ -89,14 +123,15 @@ const K=d.check,cd=K.corr_dist;
 $("chk").innerHTML=`<div>重合/行业检查：${K.log.length?K.log.join("；"):"六只之间前十大重合与单一行业重合均未超20%"}</div><div>月度收益平均相关系数：<b>${n(K.avg_corr,3)}</b>（阈值<${C.check.corr_max}）　两两：${Object.entries(K.corr_matrix).map(([k,v])=>k+" "+v).join("，")||"—"}</div><div>相关系数实测分布（各类前5候选两两，n=${cd.n}）：最小 ${cd.min} · 25% ${cd.p25} · 中位 ${cd.median} · 75% ${cd.p75} · 最大 ${cd.max}</div><div>${K.fx}</div>`;
 $("cand").innerHTML=`<thead><tr><th>风格</th><th>名称</th><th>代码</th><th>得分</th>${Object.values(SUB).map(l=>`<th>${l}</th>`).join("")}<th>近三年</th><th>最大回撤</th><th>换手率%</th><th>规模(亿)</th></tr></thead><tbody>`+S.flatMap(s=>d.candidates[s].map((c,i)=>`<tr class="${i==0?'top':''}"><td>${s}</td><td>${c.name}</td><td>${c.code}</td><td>${n(c.score)}</td>${Object.keys(SUB).map(k=>`<td>${n(c.sub[k],0)}</td>`).join("")}<td>${pc(c.r3y)}</td><td>${pc(c.mdd)}</td><td>${n(c.turnover)}</td><td>${n(c.size,2)}</td></tr>`)).join("")+"</tbody>";
 $("rule").innerHTML=`<b>方案与口径</b><br>
+纸面成交：信号在信号日收盘后计算，按下一交易日开盘（T+1 开盘）成交；本看板不设涨跌停跳过。<br>
 ①准入：成立满${C.gate1.min_years}年、现任经理（取任职最久者）连续任职满${C.gate1.min_tenure}年、净资产${C.gate1.size_min}~${C.gate1.size_max}亿；只取A类/主份额，剔除名称含持有期/封闭/定开/养老/目标日期及“一年/两年/三年/N个月”等持有期字样的产品；类型限股票型、偏股/灵活配置混合、QDII股票/偏股混合。<br>
 ②风格稳定：近${C.gate2.quarters}个季报前十大重仓（季报只披露前十大），相邻季度重合只数/10的平均值≥<b>${(C.gate2.min_overlap*100).toFixed(0)}%</b>（平均每季至少保留5只）。阈值据实测分布定：n=${d.overlap_dist.n}，10%分位 ${d.overlap_dist.p10}、25% ${d.overlap_dist.p25}、中位 ${d.overlap_dist.median}、75% ${d.overlap_dist.p75}。不再使用PE/PB/增速±30%。趋势类、海外类免除本关；趋势类排除名称或类型含量化/指数增强/增强/多因子的基金（本期排除${d.quant_excluded}只）。<br>
 ③换手率：取<b>2025年报</b>，按年报8.4.3“买入股票成本总额+卖出股票收入总额”÷2，除以资产负债表股票投资期初期末均值计算（年报未直接披露换手率）；不超过本类上限才通过，<span class="warn">取不到记为“缺换手率”不通过</span>；<b>海外类（QDII）免除换手率关</b>（banylde裁定）。覆盖：${d.turnover_cov.有换手率}/${d.turnover_cov.过准入}只。<br>
 ④业绩：同类=本看板同风格且过准入的基金；近三年收益排名前1/3、${Y.join("/")}每个自然年不落后1/3、近三年最大回撤不差于同类中位数、近24个月滚动一年收益进同类前50%的月份≥60%。收益按天天基金日收益率复利（含分红再投）。<br>
 风格归类：QDII→海外；前十大中前三行业（TradingView行业）合计占净值>50%→主题；其余按重仓特征在池内百分位取最高：成长=增速+低PEG，质量=ROE，价值=低PB+低PE+股息率，趋势=前十大季度重合度低。<br>
 打分：风格稳定性30%、滚动胜率25%、回撤控制20%、经理年限15%、费率10%，各项池内排名折算0~100；趋势、海外类风格稳定项统一记50。前两名差<${C.tie_gap}分时选前十大重合度更高、规模更稳的。<br>
-体检：前十大重仓或单一行业重合>20%换掉得分低者；六只近三年月度收益平均相关≥0.8换掉相关最高者。权重按近三年月度波动率倒数，单只${C.weight.min}%~${C.weight.max}%。<br>
+体检：前十大重仓或单一行业重合>20%换掉得分低者；六只近三年月度收益平均相关≥0.8换掉相关最高者。权重按近三年月度波动率倒数，单只${C.weight.min}%~${C.weight.max}%，写入正式名单每只基金。<br>
 替换触发：经理变更、规模单季变动超±50%、风格连续两季超±30%、换手超限、近一年同类后1/3且持续两年；新基金须完整通过四关。`;})
-.catch(e=>$("meta").textContent="数据加载失败："+e);
+.catch(e=>{$("meta").textContent="数据加载失败："+e;$("stale").classList.add("on");$("stale-why").textContent="未能读到 latest.json，不能把页面上的旧数字当成最新。"});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
 </script></body></html>
