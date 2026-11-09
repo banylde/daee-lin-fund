@@ -32,7 +32,7 @@ def universe():
         for f in rank_list(ft):
             code, name, estab = f[0], f[1], f[16]
             if re.search(r"[B-Z]$", name) and not name.endswith("A"): continue   # 只留A类/无后缀主份额
-            if re.search(r"持有|封闭|定开|定期开放|养老|目标日期", name): continue
+            if re.search(r"持有|封闭|定开|定期开放|养老|目标日期|[一二两三四五六]年|\d+年|[一二两三六九十]+个月|\d+个月", name): continue
             out[code] = {"code": code, "name": name, "ft": ft, "estab": estab}
     return list(out.values())
 

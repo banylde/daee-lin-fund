@@ -129,6 +129,7 @@ def gate2(r):
     return True, "", None
 def gate3(r):
     t = TO.get(r["code"]) or {}; r["turnover"] = t.get("rate")
+    if r["style"] in C["gate3_exempt"]: return True, f"{r['style']}类免除换手率关"
     if r["turnover"] is None: return False, "缺换手率"
     if r["turnover"] > C["turnover_cap"][r["style"]]: return False, "换手率超限"
     return True, ""
@@ -283,6 +284,16 @@ if old is None or old.get("quarter") != qk:
     old = {"quarter": qk, "rebalance_date": DATA_DATE.isoformat(), "full_rerun": full,
            "picks": [picks[s] for s in STY if s in picks], "changes": changes or (["首次建立"] if full and not old else [])}
     json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
+# 规则改动后空缺类补入（仅 config.fill_styles 列明的类，且该类正式名单为空时）
+fill = [s for s in C.get("fill_styles", []) if s not in {p["style"] for p in old["picks"]} and newsel.get(s)]
+if fill:
+    for s in fill:
+        r = newsel[s]; old["picks"].append({"style": s, "code": r["code"], "name": r["name"], "mgr": r["mgr"]})
+        old.setdefault("changes", []).append(f"{s}：规则改动后补入{r['name']}（{DATA_DATE.isoformat()}）")
+    old["picks"].sort(key=lambda p: STY.index(p["style"]))
+    json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
+EXN = re.compile(r"持有|封闭|定开|定期开放|养老|目标日期|[一二两三四五六]年|\d+年|[一二两三六九十]+个月|\d+个月")
+HIT = [p["name"] for p in old["picks"] if EXN.search(p["name"])]
 OFF = {p["style"]: p for p in old["picks"]}
 offr = {s: F[p["code"]] for s, p in OFF.items() if p["code"] in F and F[p["code"]].get("perf")}
 W8 = weights(offr)
@@ -305,7 +316,7 @@ out = {
         "cards": [card(offr[s], s) for s in STY if s in offr]},
     "candidates": {s: [card(r, s) for r in CANDS[s][:5]] for s in STY},
     "check": CHECK, "empty": [s for s in STY if not CANDS[s]],
-    "fails": {s: {} for s in STY}, "quant_excluded": EXCL,
+    "fails": {s: {} for s in STY}, "quant_excluded": EXCL, "excl_hit_official": HIT,
     "overlap_dist": {k: OVD[int(q * (len(OVD) - 1))] for k, q in [("p10", .1), ("p25", .25), ("median", .5), ("p75", .75), ("p90", .9)]} | {"n": len(OVD)},
     "turnover_cov": {"有换手率": sum(1 for r in pool if r.get("turnover") is not None), "过准入": len(pool) + EXCL, "年报": 2025},
     "config": C,
