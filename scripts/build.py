@@ -1,6 +1,8 @@
 """六仙出林 筛选打分：读 data/raw.json → data/latest.json + data/official.json"""
 import json, os, re, sys, math, statistics as st, datetime as dt
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from trading_day import latest_trading_day
 C = json.load(open(os.path.join(ROOT, "config.json")))
 RAW = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "data", "raw.json")))
 S = RAW["stocks"]; STY = C["styles"]
@@ -254,6 +256,49 @@ def weights(P_):
         ft = sum(fixed[s] for s in free); w = {s: fixed[s] + (diff * fixed[s] / ft if s in free else 0) for s in w}
     return {s: round(v, 1) for s, v in w.items()}
 
+# ---------- 调仓记录 ----------
+HIST = os.path.join(ROOT, "data", "history.json")
+
+def load_hist():
+    if not os.path.exists(HIST):
+        return {"events": []}
+    try:
+        h = json.load(open(HIST))
+    except Exception:
+        return {"events": []}
+    if not isinstance(h, dict):
+        return {"events": []}
+    h.setdefault("events", [])
+    return h
+
+def event_key(e):
+    inn = tuple(sorted((x.get("code") or "") for x in (e.get("in") or [])))
+    out = tuple(sorted((x.get("code") or "") for x in (e.get("out") or [])))
+    return (e.get("date"), e.get("quarter"), inn, out)
+
+def append_rebalance(prev, new, date, quarter, full, changes, reason, weights):
+    """正式名单发生调入/调出（或新季度冻结）时追加一条。同一日、同一季度、同一组代码不重复写。"""
+    prev, new = prev or [], new or []
+    by_prev = {p.get("style"): p for p in prev}
+    by_new = {p.get("style"): p for p in new}
+    inn, outp = [], []
+    for s, p in by_new.items():
+        o = by_prev.get(s)
+        if not o or o.get("code") != p.get("code"):
+            inn.append({"style": s, "code": p.get("code"), "name": p.get("name"), "weight": weights.get(s)})
+    for s, p in by_prev.items():
+        n = by_new.get(s)
+        if not n or n.get("code") != p.get("code"):
+            outp.append({"style": s, "code": p.get("code"), "name": p.get("name"), "weight": p.get("weight")})
+    ev = {"date": date, "quarter": quarter, "full_rerun": bool(full), "changes": changes or [], "reason": reason,
+          "in": inn, "out": outp, "weights": {p.get("style"): weights.get(p.get("style")) for p in new}, "source": "build"}
+    h = load_hist()
+    if any(event_key(x) == event_key(ev) for x in h["events"]):
+        return
+    h["events"].append(ev)
+    h["events"].sort(key=lambda e: (e.get("date") or "", e.get("quarter") or ""))
+    json.dump(h, open(HIST, "w"), ensure_ascii=False, indent=1)
+
 # ---------- 正式名单（季度） ----------
 OP = os.path.join(ROOT, "data", "official.json")
 old = json.load(open(OP)) if os.path.exists(OP) else None
@@ -271,8 +316,10 @@ def trig(r, o=None):
     if r.get("r1y_pct") is not None and r["r1y_pct"] < 33.3 and (r.get("r1y_prev_pct") or 100) < 33.3: t.append("近一年同类后1/3且持续两年")
     return t
 newsel = cur()
+pending = []
 if old is None or old.get("quarter") != qk:
     full = old is None or DATA_DATE.month == RB["annual_full_month"]
+    prev = [dict(p) for p in (old or {}).get("picks") or []]
     picks, changes = {}, []
     for s in STY:
         inc = next((p for p in (old or {}).get("picks", []) if p["style"] == s), None) if not full else None
@@ -281,24 +328,76 @@ if old is None or old.get("quarter") != qk:
         r = incr if keep else newsel.get(s)
         if r: picks[s] = {"style": s, "code": r["code"], "name": r["name"], "mgr": r["mgr"]}
         if inc and (not r or r["code"] != inc["code"]): changes.append(f"{s}：{inc['name']}→{r['name'] if r else '空缺'}")
-    old = {"quarter": qk, "rebalance_date": DATA_DATE.isoformat(), "full_rerun": full,
-           "picks": [picks[s] for s in STY if s in picks], "changes": changes or (["首次建立"] if full and not old else [])}
+    new_picks = [picks[s] for s in STY if s in picks]
+    ch = changes or (["首次建立"] if full and not old else [])
+    reason = "；".join(ch) if ch else ("全流程重跑，名单未变" if full else "季度调仓，名单未变")
+    pending.append({"date": DATA_DATE.isoformat(), "quarter": qk, "full": full, "changes": ch, "reason": reason,
+                    "prev": prev, "new": new_picks})
+    old = {"quarter": qk, "rebalance_date": DATA_DATE.isoformat(), "full_rerun": full, "picks": new_picks, "changes": ch}
     json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
 # 规则改动后空缺类补入（仅 config.fill_styles 列明的类，且该类正式名单为空时）
 fill = [s for s in C.get("fill_styles", []) if s not in {p["style"] for p in old["picks"]} and newsel.get(s)]
 if fill:
+    prev = [dict(p) for p in old["picks"]]
+    added = []
     for s in fill:
         r = newsel[s]; old["picks"].append({"style": s, "code": r["code"], "name": r["name"], "mgr": r["mgr"]})
-        old.setdefault("changes", []).append(f"{s}：规则改动后补入{r['name']}（{DATA_DATE.isoformat()}）")
+        line = f"{s}：规则改动后补入{r['name']}（{DATA_DATE.isoformat()}）"
+        old.setdefault("changes", []).append(line); added.append(line)
     old["picks"].sort(key=lambda p: STY.index(p["style"]))
+    pending.append({"date": DATA_DATE.isoformat(), "quarter": old.get("quarter"), "full": False, "changes": added,
+                    "reason": "；".join(added), "prev": prev, "new": [dict(p) for p in old["picks"]]})
     json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
 EXN = re.compile(r"持有|封闭|定开|定期开放|养老|目标日期|[一二两三四五六]年|\d+年|[一二两三六九十]+个月|\d+个月")
 HIT = [p["name"] for p in old["picks"] if EXN.search(p["name"])]
 OFF = {p["style"]: p for p in old["picks"]}
 offr = {s: F[p["code"]] for s, p in OFF.items() if p["code"] in F and F[p["code"]].get("perf")}
 W8 = weights(offr)
+for p in old["picks"]:
+    p["weight"] = W8.get(p["style"])
+json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
+for ev in pending:
+    append_rebalance(ev["prev"], ev["new"], ev["date"], ev["quarter"], ev["full"], ev["changes"], ev["reason"], W8)
 nq = [(DATA_DATE.year + (1 if m <= DATA_DATE.month and (m, RB["day"]) <= (DATA_DATE.month, DATA_DATE.day) else 0), m) for m in RB["months"]]
 nxt = min(dt.date(y, m, RB["day"]) for y, m in nq if dt.date(y, m, RB["day"]) > DATA_DATE)
+
+def fetch_meta():
+    p = os.path.join(ROOT, "data", "fetch_status.json")
+    status = {}
+    if os.path.exists(p):
+        try:
+            status = json.load(open(p))
+        except Exception:
+            status = {}
+    raw_fetch = RAW.get("fetch") or {}
+    if not status and raw_fetch:
+        status = {"stale": bool(raw_fetch.get("stocks_reused")), "error": "", "fallback": raw_fetch.get("fallback") or {},
+                  "nav_backup": raw_fetch.get("nav_backup") or 0, "stocks_reused": bool(raw_fetch.get("stocks_reused"))}
+    return status
+
+status = fetch_meta()
+ltd = latest_trading_day()
+reasons = []
+stale = False
+if status.get("stale"):
+    stale = True
+    reasons.append(status.get("error") or "抓取沿用了旧行情")
+if ltd and DATA_DATE.isoformat() < ltd:
+    stale = True
+    reasons.append(f"净值日期 {DATA_DATE.isoformat()} 落后于最近A股交易日 {ltd}")
+if not ltd:
+    stale = True
+    reasons.append("未能取得上证指数最近交易日，无法确认净值日期是否最新")
+sources = ["天天基金/东方财富基金F10", "TradingView个股指标"]
+fb = status.get("fallback") or {}
+if isinstance(fb, dict) and fb:
+    sources.append("备用:" + ",".join(fb))
+elif isinstance(fb, list) and fb:
+    sources.append("备用:" + ",".join(str(x) for x in fb))
+if status.get("nav_backup"):
+    sources.append("净值备用:api.fund.eastmoney.com/f10/lsjz")
+if status.get("stocks_reused"):
+    sources.append("个股指标沿用上次raw.json")
 
 def card(r, s):
     o = OFF.get(s) if OFF.get(s, {}).get("code") == r["code"] else None
@@ -310,10 +409,11 @@ def card(r, s):
             "triggers": trig(r, o) if o else None, "tie_note": r.get("tie_note"), "g4_why": r.get("g4_why")}
 out = {
     "data_date": DATA_DATE.isoformat(), "updated_at": dt.datetime.utcnow().replace(microsecond=0) .__add__(dt.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M"),
-    "fetched_at": RAW["fetched_at"], "sources": ["天天基金/东方财富基金F10", "TradingView个股指标"],
+    "fetched_at": RAW["fetched_at"], "sources": sources,
+    "stale": stale, "stale_reason": "；".join(reasons), "latest_trading_day": ltd,
     "universe": RAW.get("counts", {}), "funnel": FUNNEL, "years": YEARS,
     "official": old | {"next_rebalance": nxt.isoformat(), "weights": W8,
-        "cards": [card(offr[s], s) for s in STY if s in offr]},
+        "cards": [dict(card(offr[s], s), weight=W8.get(s)) for s in STY if s in offr]},
     "candidates": {s: [card(r, s) for r in CANDS[s][:5]] for s in STY},
     "check": CHECK, "empty": [s for s in STY if not CANDS[s]],
     "fails": {s: {} for s in STY}, "quant_excluded": EXCL, "excl_hit_official": HIT,
@@ -327,4 +427,4 @@ for r in pool:
         for w in why.split("；"):
             k = w.split("：")[0][:14]; out["fails"][r["style"]][k] = out["fails"][r["style"]].get(k, 0) + 1
 json.dump(out, open(os.path.join(ROOT, "data", "latest.json"), "w"), ensure_ascii=False, indent=1)
-print(json.dumps({"funnel": FUNNEL, "empty": out["empty"], "official": [(c["style"], c["code"], c["name"], c["score"], W8.get(c["style"])) for c in out["official"]["cards"]], "check": {k: CHECK[k] for k in ["log", "avg_corr", "corr_dist"]}, "fails": out["fails"], "ovd": out["overlap_dist"], "cov": out["turnover_cov"], "quant": EXCL}, ensure_ascii=False, indent=1))
+print(json.dumps({"funnel": FUNNEL, "empty": out["empty"], "stale": stale, "latest_trading_day": ltd, "official": [(c["style"], c["code"], c["name"], c["score"], c.get("weight")) for c in out["official"]["cards"]], "check": {k: CHECK[k] for k in ["log", "avg_corr", "corr_dist"]}, "fails": out["fails"], "ovd": out["overlap_dist"], "cov": out["turnover_cov"], "quant": EXCL}, ensure_ascii=False, indent=1))

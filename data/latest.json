@@ -82,7 +82,8 @@
     "name": "国联安核心资产策略混合",
     "mgr": [
      "魏东"
-    ]
+    ],
+    "weight": 12.6
    },
    {
     "style": "趋势",
@@ -90,7 +91,8 @@
     "name": "南方策略优化混合",
     "mgr": [
      "朱恒红"
-    ]
+    ],
+    "weight": 16.8
    },
    {
     "style": "质量",
@@ -98,7 +100,8 @@
     "name": "万家臻选混合A",
     "mgr": [
      "莫海波"
-    ]
+    ],
+    "weight": 10.6
    },
    {
     "style": "价值",
@@ -106,7 +109,8 @@
     "name": "鹏华盛世创新混合(LOF)A",
     "mgr": [
      "伍旋"
-    ]
+    ],
+    "weight": 26.4
    },
    {
     "style": "主题",
@@ -114,7 +118,8 @@
     "name": "华宝核心优势混合A",
     "mgr": [
      "郑英亮"
-    ]
+    ],
+    "weight": 9.5
    },
    {
     "style": "海外",
@@ -122,7 +127,8 @@
     "name": "富国全球消费精选混合(QDII)人民币A",
     "mgr": [
      "彭陈晨"
-    ]
+    ],
+    "weight": 24.2
    }
   ],
   "changes": [
@@ -184,7 +190,8 @@
     "scale_mom": "-11.97%",
     "triggers": [],
     "tie_note": null,
-    "g4_why": ""
+    "g4_why": "",
+    "weight": 12.6
    },
    {
     "style": "趋势",
@@ -231,7 +238,8 @@
     "scale_mom": "-15.32%",
     "triggers": [],
     "tie_note": null,
-    "g4_why": ""
+    "g4_why": "",
+    "weight": 16.8
    },
    {
     "style": "质量",
@@ -278,7 +286,8 @@
     "scale_mom": "-9.37%",
     "triggers": [],
     "tie_note": null,
-    "g4_why": ""
+    "g4_why": "",
+    "weight": 10.6
    },
    {
     "style": "价值",
@@ -325,7 +334,8 @@
     "scale_mom": "17.90%",
     "triggers": [],
     "tie_note": "与第二名差<3分，按风格纯度/规模稳定择优",
-    "g4_why": ""
+    "g4_why": "",
+    "weight": 26.4
    },
    {
     "style": "主题",
@@ -372,7 +382,8 @@
     "scale_mom": "2.56%",
     "triggers": [],
     "tie_note": null,
-    "g4_why": ""
+    "g4_why": "",
+    "weight": 9.5
    },
    {
     "style": "海外",
@@ -419,7 +430,8 @@
     "scale_mom": "-14.83%",
     "triggers": [],
     "tie_note": null,
-    "g4_why": ""
+    "g4_why": "",
+    "weight": 24.2
    }
   ]
  },
@@ -1605,5 +1617,8 @@
    "海外"
   ],
   "name_exclude": "持有|封闭|定开|定期开放|养老|目标日期|N年|N个月（持有期字样）"
- }
+ },
+ "stale": false,
+ "stale_reason": "",
+ "latest_trading_day": "2026-11-09"
 }
