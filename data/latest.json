@@ -6,8 +6,8 @@
   "天天基金/东方财富基金F10",
   "TradingView个股指标"
  ],
- "stale": false,
- "stale_reason": "",
+ "stale": true,
+ "stale_reason": "净值日期 2026-11-13 落后于最近A股交易日 2026-11-16。本文件筛选结果按 2026-11-13 净值，不得冒充 11-16 最新。",
  "latest_trading_day": "2026-11-13",
  "universe": {
   "主份额去长持有": 4685,
@@ -80,15 +80,6 @@
   "full_rerun": true,
   "picks": [
    {
-    "style": "成长",
-    "code": "006864",
-    "name": "国联安核心资产策略混合",
-    "mgr": [
-     "魏东"
-    ],
-    "weight": 12.6
-   },
-   {
     "style": "趋势",
     "code": "202019",
     "name": "南方策略优化混合",
@@ -98,15 +89,6 @@
     "weight": 16.8
    },
    {
-    "style": "质量",
-    "code": "005094",
-    "name": "万家臻选混合A",
-    "mgr": [
-     "莫海波"
-    ],
-    "weight": 10.6
-   },
-   {
     "style": "价值",
     "code": "160613",
     "name": "鹏华盛世创新混合(LOF)A",
@@ -114,15 +96,6 @@
      "伍旋"
     ],
     "weight": 26.3
-   },
-   {
-    "style": "主题",
-    "code": "002152",
-    "name": "华宝核心优势混合A",
-    "mgr": [
-     "郑英亮"
-    ],
-    "weight": 9.6
    },
    {
     "style": "海外",
@@ -136,307 +109,60 @@
   ],
   "changes": [
    "首次建立",
-   "海外：规则改动后补入富国全球消费精选混合(QDII)人民币A（2026-11-09）"
+   "海外：规则改动后补入富国全球消费精选混合(QDII)人民币A（2026-11-09）",
+   "公司门槛（2026-11-16）：移出国联安核心资产策略混合、万家臻选混合A、华宝核心优势混合A；成长/质量/主题暂空，不强制补入，权重不放大"
   ],
-  "next_rebalance": "2027-01-25",
-  "weights": {
-   "成长": 12.6,
-   "趋势": 16.8,
-   "质量": 10.6,
-   "价值": 26.3,
-   "主题": 9.6,
-   "海外": 24.2
-  },
-  "cards": [
-   {
-    "style": "成长",
-    "code": "006864",
-    "name": "国联安核心资产策略混合",
-    "type": "混合型-偏股",
-    "mgr": [
-     "魏东"
-    ],
-    "tenure": 5.98,
-    "size": 2.95,
-    "fee": 1.4,
-    "score": 56.7,
-    "sub": {
-     "stability": 66.7,
-     "roll_win": 100.0,
-     "drawdown": 0.0,
-     "tenure": 33.3,
-     "fee": 66.7
+  "company_gate": {
+   "applied_locally": true,
+   "published": true,
+   "period": "2026-06-30",
+   "removed": [
+    {
+     "style": "成长",
+     "code": "006864",
+     "name": "国联安核心资产策略混合",
+     "weight": 12.6,
+     "company": "国联安基金"
     },
-    "r3y": 49.94,
-    "mdd": -30.65,
-    "vol": 31.55,
-    "roll_win": 1.0,
-    "years": {
-     "2023": -3.68,
-     "2024": 8.08,
-     "2025": 60.98
+    {
+     "style": "质量",
+     "code": "005094",
+     "name": "万家臻选混合A",
+     "weight": 10.6,
+     "company": "万家基金"
     },
-    "purity": 0.355,
-    "dev": null,
-    "overlap": 0.645,
-    "turnover": 216.6,
-    "feat": {
-     "pe": 29.44,
-     "pb": 4.9,
-     "roe": 21.3,
-     "g": 102.36,
-     "dy": null
+    {
+     "style": "主题",
+     "code": "002152",
+     "name": "华宝核心优势混合A",
+     "weight": 9.6,
+     "company": "华宝基金"
+    }
+   ],
+   "kept": [
+    {
+     "style": "趋势",
+     "code": "202019",
+     "name": "南方策略优化混合",
+     "weight": 16.8
     },
-    "top3_sector": 48.2,
-    "last_q": "2026-09-30",
-    "nq": 12,
-    "scale_mom": "-11.97%",
-    "triggers": [],
-    "tie_note": null,
-    "g4_why": "",
-    "weight": 12.6
-   },
-   {
-    "style": "趋势",
-    "code": "202019",
-    "name": "南方策略优化混合",
-    "type": "混合型-偏股",
-    "mgr": [
-     "朱恒红"
-    ],
-    "tenure": 5.88,
-    "size": 2.94,
-    "fee": 1.4,
-    "score": 68.3,
-    "sub": {
-     "stability": 50.0,
-     "roll_win": 100.0,
-     "drawdown": 100.0,
-     "tenure": 33.3,
-     "fee": 33.3
+    {
+     "style": "价值",
+     "code": "160613",
+     "name": "鹏华盛世创新混合(LOF)A",
+     "weight": 26.3
     },
-    "r3y": 47.87,
-    "mdd": -25.98,
-    "vol": 23.59,
-    "roll_win": 1.0,
-    "years": {
-     "2023": -10.34,
-     "2024": 9.42,
-     "2025": 43.61
-    },
-    "purity": null,
-    "dev": null,
-    "overlap": 0.055,
-    "turnover": 293.8,
-    "feat": {
-     "pe": 37.35,
-     "pb": 6.65,
-     "roe": 28.13,
-     "g": 141.48,
-     "dy": null
-    },
-    "top3_sector": 17.8,
-    "last_q": "2026-09-30",
-    "nq": 12,
-    "scale_mom": "-15.32%",
-    "triggers": [],
-    "tie_note": null,
-    "g4_why": "",
-    "weight": 16.8
-   },
-   {
-    "style": "质量",
-    "code": "005094",
-    "name": "万家臻选混合A",
-    "type": "混合型-偏股",
-    "mgr": [
-     "莫海波"
-    ],
-    "tenure": 8.9,
-    "size": 20.78,
-    "fee": 1.4,
-    "score": 78.3,
-    "sub": {
-     "stability": 100.0,
-     "roll_win": 33.3,
-     "drawdown": 100.0,
-     "tenure": 66.7,
-     "fee": 100.0
-    },
-    "r3y": 113.07,
-    "mdd": -28.78,
-    "vol": 37.53,
-    "roll_win": 0.792,
-    "years": {
-     "2023": -15.23,
-     "2024": 32.67,
-     "2025": 66.28
-    },
-    "purity": 0.236,
-    "dev": null,
-    "overlap": 0.764,
-    "turnover": 147.3,
-    "feat": {
-     "pe": 33.33,
-     "pb": 7.18,
-     "roe": 28.45,
-     "g": 103.46,
-     "dy": null
-    },
-    "top3_sector": 39.4,
-    "last_q": "2026-09-30",
-    "nq": 12,
-    "scale_mom": "-9.37%",
-    "triggers": [],
-    "tie_note": null,
-    "g4_why": "",
-    "weight": 10.6
-   },
-   {
-    "style": "价值",
-    "code": "160613",
-    "name": "鹏华盛世创新混合(LOF)A",
-    "type": "混合型-偏股",
-    "mgr": [
-     "伍旋"
-    ],
-    "tenure": 14.88,
-    "size": 10.33,
-    "fee": 1.4,
-    "score": 65.0,
-    "sub": {
-     "stability": 83.3,
-     "roll_win": 0.0,
-     "drawdown": 100.0,
-     "tenure": 100.0,
-     "fee": 50.0
-    },
-    "r3y": 46.15,
-    "mdd": -14.84,
-    "vol": 15.06,
-    "roll_win": 0.625,
-    "years": {
-     "2023": 0.35,
-     "2024": 21.68,
-     "2025": 20.53
-    },
-    "purity": 0.155,
-    "dev": null,
-    "overlap": 0.845,
-    "turnover": 62.1,
-    "feat": {
-     "pe": 13.78,
-     "pb": 2.12,
-     "roe": 15.82,
-     "g": 27.32,
-     "dy": null
-    },
-    "top3_sector": 42.5,
-    "last_q": "2026-09-30",
-    "nq": 12,
-    "scale_mom": "17.90%",
-    "triggers": [],
-    "tie_note": "与第二名差<3分，按风格纯度/规模稳定择优",
-    "g4_why": "",
-    "weight": 26.3
-   },
-   {
-    "style": "主题",
-    "code": "002152",
-    "name": "华宝核心优势混合A",
-    "type": "混合型-灵活",
-    "mgr": [
-     "郑英亮"
-    ],
-    "tenure": 4.87,
-    "size": 24.65,
-    "fee": 1.4,
-    "score": 59.0,
-    "sub": {
-     "stability": 80.0,
-     "roll_win": 80.0,
-     "drawdown": 20.0,
-     "tenure": 20.0,
-     "fee": 80.0
-    },
-    "r3y": 132.98,
-    "mdd": -41.19,
-    "vol": 41.22,
-    "roll_win": 0.875,
-    "years": {
-     "2023": -2.77,
-     "2024": 19.15,
-     "2025": 117.2
-    },
-    "purity": 0.264,
-    "dev": null,
-    "overlap": 0.736,
-    "turnover": 213.5,
-    "feat": {
-     "pe": 22.66,
-     "pb": 5.31,
-     "roe": 31.84,
-     "g": 79.36,
-     "dy": null
-    },
-    "top3_sector": 60.0,
-    "last_q": "2026-09-30",
-    "nq": 12,
-    "scale_mom": "2.56%",
-    "triggers": [],
-    "tie_note": null,
-    "g4_why": "",
-    "weight": 9.6
-   },
-   {
-    "style": "海外",
-    "code": "012060",
-    "name": "富国全球消费精选混合(QDII)人民币A",
-    "type": "QDII-混合偏股",
-    "mgr": [
-     "彭陈晨"
-    ],
-    "tenure": 4.98,
-    "size": 5.21,
-    "fee": 1.4,
-    "score": 85.0,
-    "sub": {
-     "stability": 50.0,
-     "roll_win": 100.0,
-     "drawdown": 100.0,
-     "tenure": 100.0,
-     "fee": 100.0
-    },
-    "r3y": 74.82,
-    "mdd": -22.09,
-    "vol": 16.38,
-    "roll_win": 0.625,
-    "years": {
-     "2023": -0.38,
-     "2024": 38.48,
-     "2025": 42.8
-    },
-    "purity": null,
-    "dev": null,
-    "overlap": 0.373,
-    "turnover": null,
-    "feat": {
-     "pe": 14.84,
-     "pb": 3.64,
-     "roe": -110.62,
-     "g": 30.95,
-     "dy": null
-    },
-    "top3_sector": null,
-    "last_q": "2026-09-30",
-    "nq": 12,
-    "scale_mom": "-14.83%",
-    "triggers": [],
-    "tie_note": null,
-    "g4_why": "",
-    "weight": 24.2
-   }
-  ]
+    {
+     "style": "海外",
+     "code": "012060",
+     "name": "富国全球消费精选混合(QDII)人民币A",
+     "weight": 24.2
+    }
+   ],
+   "note": "按用户硬门槛移出不在混合型规模前二十的基金公司产品（国联安、万家、华宝）。对应风格暂空，不强制补入，权重不放大。2026-11-16 已授权公开。",
+   "published_at": "2026-11-16",
+   "authorization": "用户 2026-11-16 19:09（北京时间）恢复公开，同步已授权的公司门槛至公开看板"
+  }
  },
  "candidates": {
   "成长": [
@@ -1617,5 +1343,13 @@
    "海外"
   ],
   "name_exclude": "持有|封闭|定开|定期开放|养老|目标日期|N年|N个月（持有期字样）"
+ },
+ "official_note": "正式名单已按用户授权的公司门槛更新为三只合格基金及当时公开原权重（16.8/26.3/24.2），成长/质量/主题暂空，不强制补入。candidates 与 funnel 仍是 2026-11-13 周更、加入公司门槛之前的筛选结果，仅供对照，不是建仓信号也不是成交。因仓库不保存 raw.json，本次未用 11-13 净值完整重筛。",
+ "company_gate": {
+  "enabled": true,
+  "period": "2026-06-30",
+  "applied_to_official": true,
+  "applied_to_candidates_rerun": false,
+  "note": "正式名单已拦截；candidates/funnel 尚未按公司门槛重跑。"
  }
 }

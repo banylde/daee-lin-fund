@@ -75,5 +75,19 @@
  "fill_styles": [
   "海外"
  ],
- "name_exclude": "持有|封闭|定开|定期开放|养老|目标日期|N年|N个月（持有期字样）"
+ "name_exclude": "持有|封闭|定开|定期开放|养老|目标日期|N年|N个月（持有期字样）",
+ "gate_company": {
+  "enabled": true,
+  "file": "data/company_whitelist.json",
+  "applies_to": [
+   "成长",
+   "趋势",
+   "质量",
+   "价值",
+   "主题",
+   "海外"
+  ],
+  "_note": "硬门槛：混合型基金管理规模前二十名的基金公司方可入选，适用于全部六风格（含海外）。当前统计期见 data/company_whitelist.json 的 period_end。缺基金管理人或不在白名单一律不纳入。不改变其他既有准入。不合格者不强制补入凑满六只。",
+  "company_map": "data/fund_companies.json"
+ }
 }

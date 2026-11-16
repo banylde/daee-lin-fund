@@ -3,7 +3,20 @@ import json, os, re, sys, math, statistics as st, datetime as dt
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from trading_day import latest_trading_day
+import company_gate
 C = json.load(open(os.path.join(ROOT, "config.json")))
+GC = C.get("gate_company") or {}
+WL = None
+if GC.get("enabled", True):
+    WL = company_gate.load_whitelist(os.path.join(ROOT, GC.get("file") or "data/company_whitelist.json"))
+COMAP = {}
+_cmap_path = os.path.join(ROOT, GC.get("company_map") or "data/fund_companies.json")
+if os.path.exists(_cmap_path):
+    try:
+        _cmap = json.load(open(_cmap_path, encoding="utf-8"))
+        COMAP = _cmap.get("funds") or _cmap
+    except Exception:
+        COMAP = {}
 RAW = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "data", "raw.json")))
 S = RAW["stocks"]; STY = C["styles"]
 DAY = 86400
@@ -83,10 +96,15 @@ funds = [f for f in RAW["funds"] if "error" not in f]
 F = {}
 for f in funds:
     g1 = f.get("g1") or {}
-    rec = {"code": f["code"], "name": f["name"], "type": f.get("type"), "tenure": f.get("tenure"), "mgr": f.get("mgr_now"),
+    rec = {"code": f["code"], "name": f["name"], "type": f.get("type"),
+           "company": f.get("company") or ((COMAP.get(f["code"]) or {}).get("company") if isinstance(COMAP.get(f["code"]), dict) else COMAP.get(f["code"])),
+           "tenure": f.get("tenure"), "mgr": f.get("mgr_now"),
            "size": float(f["nav_size"]) if f.get("nav_size") else None,
            "fee": round(float(f["mgmt_fee"]) + float(f["cust_fee"]), 2) if f.get("mgmt_fee") and f.get("cust_fee") else None,
            "g1": all(g1.values()) if g1 else False, "g1_fail": [k for k, v in g1.items() if not v]}
+    gc = company_gate.check(rec.get("company"), WL)
+    rec["g_company"], rec["g_company_why"] = gc["pass"], gc["reason"]
+    rec["company_full"], rec["company_rank"] = gc["matched"], gc["rank"]
     sc = (f.get("scale") or {}).get("series") or []
     rec["scale_mom"] = sc[-1].get("mom") if sc else None
     q = list(f.get("hold", {}).items())[-C["gate2"]["quarters"]:]
@@ -101,7 +119,7 @@ def style_of(r):
     if top3 > 50: return "主题"
     return None
 
-pool = [r for r in F.values() if r["g1"] and r["qm"]]
+pool = [r for r in F.values() if r["g1"] and r["qm"] and r.get("g_company")]
 for r in pool:
     r["style"] = style_of(r)
     q4 = r["qm"][-4:]
@@ -317,14 +335,28 @@ def trig(r, o=None):
     return t
 newsel = cur()
 pending = []
+recompute_weights = False
+
+def pick_company_ok(p):
+    """不合格或未核实的基金公司不得留在正式名单。"""
+    code = (p or {}).get("code")
+    rec = F.get(code) if code else None
+    if rec is not None and rec.get("g_company") is False:
+        return False
+    if rec is not None and rec.get("g_company") is True:
+        return True
+    company = (rec or {}).get("company") or ((COMAP.get(code) or {}) if isinstance(COMAP.get(code), dict) else {}).get("company")
+    return bool(company_gate.check(company, WL).get("pass"))
+
 if old is None or old.get("quarter") != qk:
+    recompute_weights = True
     full = old is None or DATA_DATE.month == RB["annual_full_month"]
     prev = [dict(p) for p in (old or {}).get("picks") or []]
     picks, changes = {}, []
     for s in STY:
         inc = next((p for p in (old or {}).get("picks", []) if p["style"] == s), None) if not full else None
         incr = F.get(inc["code"]) if inc else None
-        keep = incr and incr.get("g2") and incr.get("g4") and not trig(incr, inc)
+        keep = incr and incr.get("g2") and incr.get("g4") and incr.get("g_company") and not trig(incr, inc)
         r = incr if keep else newsel.get(s)
         if r: picks[s] = {"style": s, "code": r["code"], "name": r["name"], "mgr": r["mgr"]}
         if inc and (not r or r["code"] != inc["code"]): changes.append(f"{s}：{inc['name']}→{r['name'] if r else '空缺'}")
@@ -335,8 +367,24 @@ if old is None or old.get("quarter") != qk:
                     "prev": prev, "new": new_picks})
     old = {"quarter": qk, "rebalance_date": DATA_DATE.isoformat(), "full_rerun": full, "picks": new_picks, "changes": ch}
     json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
+# 季度冻结不得覆盖公司硬门槛：不合格者立即移出，不放大其余权重，不强制补入
+if old and (GC.get("enabled", True)):
+    prev = [dict(p) for p in old.get("picks") or []]
+    kept, dropped = [], []
+    for p in prev:
+        (kept if pick_company_ok(p) else dropped).append(p)
+    if dropped:
+        lines = [f"{p.get('style')}：公司门槛移出{p.get('name')}（{p.get('code')}）" for p in dropped]
+        old["picks"] = kept
+        old.setdefault("changes", []).extend(lines)
+        pending.append({"date": DATA_DATE.isoformat(), "quarter": old.get("quarter") or qk, "full": False,
+                        "changes": lines, "reason": "；".join(lines) + "；对应风格暂空，权重不放大，不强制补入",
+                        "prev": prev, "new": [dict(p) for p in kept]})
+        json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
 # 规则改动后空缺类补入（仅 config.fill_styles 列明的类，且该类正式名单为空时）
 fill = [s for s in C.get("fill_styles", []) if s not in {p["style"] for p in old["picks"]} and newsel.get(s)]
+# 公司门槛不合格的风格不得借 fill_styles 补回；fill 前再过滤候选
+fill = [s for s in fill if newsel.get(s) and newsel[s].get("g_company")]
 if fill:
     prev = [dict(p) for p in old["picks"]]
     added = []
@@ -352,9 +400,14 @@ EXN = re.compile(r"持有|封闭|定开|定期开放|养老|目标日期|[一二
 HIT = [p["name"] for p in old["picks"] if EXN.search(p["name"])]
 OFF = {p["style"]: p for p in old["picks"]}
 offr = {s: F[p["code"]] for s, p in OFF.items() if p["code"] in F and F[p["code"]].get("perf")}
-W8 = weights(offr)
-for p in old["picks"]:
-    p["weight"] = W8.get(p["style"])
+# 仅新季度/首次建立时重算权重；且六风格未齐时不把剩余仓位放大到 100%
+all_styles_filled = all(s in OFF for s in STY)
+if recompute_weights and all_styles_filled:
+    W8 = weights(offr)
+    for p in old["picks"]:
+        p["weight"] = W8.get(p["style"])
+else:
+    W8 = {p.get("style"): p.get("weight") for p in old["picks"]}
 json.dump(old, open(OP, "w"), ensure_ascii=False, indent=1)
 for ev in pending:
     append_rebalance(ev["prev"], ev["new"], ev["date"], ev["quarter"], ev["full"], ev["changes"], ev["reason"], W8)
@@ -401,7 +454,9 @@ if status.get("stocks_reused"):
 
 def card(r, s):
     o = OFF.get(s) if OFF.get(s, {}).get("code") == r["code"] else None
-    return {"style": s, "code": r["code"], "name": r["name"], "type": r["type"], "mgr": r["mgr"], "tenure": r["tenure"], "size": r["size"],
+    return {"style": s, "code": r["code"], "name": r["name"], "type": r["type"], "company": r.get("company"),
+            "company_full": r.get("company_full"), "company_rank": r.get("company_rank"),
+            "mgr": r["mgr"], "tenure": r["tenure"], "size": r["size"],
             "fee": r["fee"], "score": r.get("score"), "sub": r.get("sub"), "r3y": r["perf"]["r3y"], "mdd": r["perf"]["mdd"], "vol": r["perf"]["vol"],
             "roll_win": r.get("roll_win"), "years": {str(y): r["perf"][str(y)] for y in YEARS}, "purity": r.get("purity"), "dev": r.get("dev"),
             "overlap": r.get("overlap"), "turnover": r.get("turnover"), "feat": {k: (round(v, 2) if v is not None else None) for k, v in r["feat"].items()},
@@ -419,6 +474,14 @@ out = {
     "fails": {s: {} for s in STY}, "quant_excluded": EXCL, "excl_hit_official": HIT,
     "overlap_dist": {k: OVD[int(q * (len(OVD) - 1))] for k, q in [("p10", .1), ("p25", .25), ("median", .5), ("p75", .75), ("p90", .9)]} | {"n": len(OVD)},
     "turnover_cov": {"有换手率": sum(1 for r in pool if r.get("turnover") is not None), "过准入": len(pool) + EXCL, "年报": 2025},
+    "company_gate": {
+        "enabled": bool(WL),
+        "period": (WL or {}).get("period"),
+        "source": (WL or {}).get("source_page"),
+        "n_pass": sum(1 for r in F.values() if r.get("g_company")),
+        "n_fail_after_g1": sum(1 for r in F.values() if r.get("g1") and r.get("qm") and not r.get("g_company")),
+        "n_missing_company": sum(1 for r in F.values() if r.get("g1") and r.get("qm") and r.get("g_company_why") == "缺基金管理人"),
+    },
     "config": C,
 }
 for r in pool:

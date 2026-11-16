@@ -155,7 +155,8 @@ def tenure(code):
 def jbgk(code):
     t = strip(get(f"https://fundf10.eastmoney.com/jbgk_{code}.html"))
     g = lambda p: (re.search(p, t) or [None, None])[1]
-    return {"type": g(r"基金类型 (\S+)"), "mgmt_fee": g(r"管理费率 ([\d.]+)%"), "cust_fee": g(r"托管费率 ([\d.]+)%"),
+    return {"type": g(r"基金类型 (\S+)"), "company": g(r"基金管理人 (\S+)"),
+            "mgmt_fee": g(r"管理费率 ([\d.]+)%"), "cust_fee": g(r"托管费率 ([\d.]+)%"),
             "nav_size": g(r"净资产规模 ([\d.]+)亿元")}
 
 def holdings(code):

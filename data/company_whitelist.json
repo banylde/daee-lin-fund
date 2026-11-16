@@ -1,0 +1,321 @@
+{
+  "rule": "混合型基金管理规模排名前二十名的基金公司入选。其余基金公司的基金一律不纳入六仙出林。适用于全部六风格（含海外）。",
+  "enabled": true,
+  "period": "2026-06-30",
+  "period_label": "2026年二季度末（同一截止日的公司混合型规模）",
+  "period_end": "2026-06-30",
+  "period_end_basis": "天天基金公司页 GetGmbdChart（fundType=002 混合型）时间序列中的 2026-06-30 点。该日期在序列中明确标出，不是由年份表惯例推断。",
+  "retrieved_at": "2026-11-16 18:32",
+  "timezone": "Asia/Shanghai",
+  "unit": "亿元",
+  "field": "混合型",
+  "source_name": "天天基金网 基金公司规模变动（混合型）",
+  "source_page": "https://fund.eastmoney.com/Company/lsgm.html",
+  "source_api": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid={公司ID}&fundType=002",
+  "n_companies_queried": 202,
+  "n_companies_with_point": 162,
+  "share_class": "源接口未说明份额是否去重。此处只用其已发布的公司级「混合型」数字，不把份额去重当作已证实事实。",
+  "classification": "接口 fundType=002，标注为「混合型」。是否含FOF等，源接口未再拆分；不以分项残差去改排名。QDII混合是否计入「混合型」分项，源接口未说明；入选仍看该公司该分项是否进入前二十。",
+  "coverage_note": "在2025年历年表出现的202家中查询混合型序列：24家无序列（多为无混合型产品的券商资管），162家有2026-06-30数据点。同序列2025-12-31有161–162个数据点，覆盖量相当。2026-09-30仅134家有点，且缺易方达、南方、富国、汇添富、华夏、中欧等大型公司，不能作为完整季度排名。历年表 year=2026 的易方达混合型3366.05与序列中任何日期都不相符，截止日未能核实，不用作白名单。",
+  "not_used": [
+    "公司总规模排名",
+    "非货币市场公募规模",
+    "权益规模",
+    "单只基金规模",
+    "中基协月报（仅有全市场混合型合计，无公司分项）",
+    "2026-09-30 混合型序列（仅134家有点，头部公司大量缺失）",
+    "HistoryScaleTable?year=2026（截止日未能与序列任一日期对齐，未采用）",
+    "各公司最新日点（日期参差，不是同一统计期）"
+  ],
+  "historical_crosscheck": {
+    "period": "2025-12-31",
+    "basis": "同一 GetGmbdChart 序列的 2025-12-31 点，与 HistoryScaleTable?year=2025 的混合型分项在可比对的基金公司上一致（精确到0.01亿元）。该年表本身未印日切，日切由此序列对齐得到，而不是年份惯例单独推断。",
+    "n_with_point": 161,
+    "note": "用作历史对照，不是本门槛采用的统计期。对照结果：国联安、万家、华宝同样不在前二十。"
+  },
+  "cutoff_note": "第20名交银施罗德基金管理有限公司837.6572亿元，第21名平安基金管理有限公司740.7379亿元，无并列。",
+  "top20": [
+    {
+      "rank": 1,
+      "company": "易方达基金管理有限公司",
+      "company_id": "80000229",
+      "url": "https://fund.eastmoney.com/Company/80000229.html",
+      "mixed_yi": 3851.3405,
+      "aliases": [
+        "易方达基金管理有限公司",
+        "易方达基金管理",
+        "易方达基金",
+        "易方达"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000229&fundType=002"
+    },
+    {
+      "rank": 2,
+      "company": "广发基金管理有限公司",
+      "company_id": "80000248",
+      "url": "https://fund.eastmoney.com/Company/80000248.html",
+      "mixed_yi": 2213.3795,
+      "aliases": [
+        "广发基金管理有限公司",
+        "广发基金管理",
+        "广发基金",
+        "广发"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000248&fundType=002"
+    },
+    {
+      "rank": 3,
+      "company": "中欧基金管理有限公司",
+      "company_id": "80065113",
+      "url": "https://fund.eastmoney.com/Company/80065113.html",
+      "mixed_yi": 2193.2233,
+      "aliases": [
+        "中欧基金管理有限公司",
+        "中欧基金管理",
+        "中欧基金",
+        "中欧"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80065113&fundType=002"
+    },
+    {
+      "rank": 4,
+      "company": "汇添富基金管理股份有限公司",
+      "company_id": "80053708",
+      "url": "https://fund.eastmoney.com/Company/80053708.html",
+      "mixed_yi": 2051.5845,
+      "aliases": [
+        "汇添富基金管理股份有限公司",
+        "汇添富基金管理",
+        "汇添富基金",
+        "汇添富"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80053708&fundType=002"
+    },
+    {
+      "rank": 5,
+      "company": "永赢基金管理有限公司",
+      "company_id": "80356155",
+      "url": "https://fund.eastmoney.com/Company/80356155.html",
+      "mixed_yi": 1914.4743,
+      "aliases": [
+        "永赢基金管理有限公司",
+        "永赢基金管理",
+        "永赢基金",
+        "永赢"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80356155&fundType=002"
+    },
+    {
+      "rank": 6,
+      "company": "富国基金管理有限公司",
+      "company_id": "80000221",
+      "url": "https://fund.eastmoney.com/Company/80000221.html",
+      "mixed_yi": 1901.8275,
+      "aliases": [
+        "富国基金管理有限公司",
+        "富国基金管理",
+        "富国基金",
+        "富国"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000221&fundType=002"
+    },
+    {
+      "rank": 7,
+      "company": "华夏基金管理有限公司",
+      "company_id": "80000222",
+      "url": "https://fund.eastmoney.com/Company/80000222.html",
+      "mixed_yi": 1477.7875,
+      "aliases": [
+        "华夏基金管理有限公司",
+        "华夏基金管理",
+        "华夏基金",
+        "华夏"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000222&fundType=002"
+    },
+    {
+      "rank": 8,
+      "company": "南方基金管理股份有限公司",
+      "company_id": "80000220",
+      "url": "https://fund.eastmoney.com/Company/80000220.html",
+      "mixed_yi": 1342.3827,
+      "aliases": [
+        "南方基金管理股份有限公司",
+        "南方基金管理",
+        "南方基金",
+        "南方"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000220&fundType=002"
+    },
+    {
+      "rank": 9,
+      "company": "景顺长城基金管理有限公司",
+      "company_id": "80000251",
+      "url": "https://fund.eastmoney.com/Company/80000251.html",
+      "mixed_yi": 1295.9023,
+      "aliases": [
+        "景顺长城基金管理有限公司",
+        "景顺长城基金管理",
+        "景顺长城基金",
+        "景顺长城"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000251&fundType=002"
+    },
+    {
+      "rank": 10,
+      "company": "兴证全球基金管理有限公司",
+      "company_id": "80036742",
+      "url": "https://fund.eastmoney.com/Company/80036742.html",
+      "mixed_yi": 1286.9048,
+      "aliases": [
+        "兴证全球基金管理有限公司",
+        "兴证全球基金管理",
+        "兴证全球基金",
+        "兴证全球"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80036742&fundType=002"
+    },
+    {
+      "rank": 11,
+      "company": "华商基金管理有限公司",
+      "company_id": "80053204",
+      "url": "https://fund.eastmoney.com/Company/80053204.html",
+      "mixed_yi": 1232.0817,
+      "aliases": [
+        "华商基金管理有限公司",
+        "华商基金管理",
+        "华商基金",
+        "华商"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80053204&fundType=002"
+    },
+    {
+      "rank": 12,
+      "company": "大成基金管理有限公司",
+      "company_id": "80000225",
+      "url": "https://fund.eastmoney.com/Company/80000225.html",
+      "mixed_yi": 994.8436,
+      "aliases": [
+        "大成基金管理有限公司",
+        "大成基金管理",
+        "大成基金",
+        "大成"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000225&fundType=002"
+    },
+    {
+      "rank": 13,
+      "company": "华安基金管理有限公司",
+      "company_id": "80000228",
+      "url": "https://fund.eastmoney.com/Company/80000228.html",
+      "mixed_yi": 984.0461,
+      "aliases": [
+        "华安基金管理有限公司",
+        "华安基金管理",
+        "华安基金",
+        "华安"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000228&fundType=002"
+    },
+    {
+      "rank": 14,
+      "company": "鹏华基金管理有限公司",
+      "company_id": "80000230",
+      "url": "https://fund.eastmoney.com/Company/80000230.html",
+      "mixed_yi": 969.1406,
+      "aliases": [
+        "鹏华基金管理有限公司",
+        "鹏华基金管理",
+        "鹏华基金",
+        "鹏华"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000230&fundType=002"
+    },
+    {
+      "rank": 15,
+      "company": "嘉实基金管理有限公司",
+      "company_id": "80000223",
+      "url": "https://fund.eastmoney.com/Company/80000223.html",
+      "mixed_yi": 905.2174,
+      "aliases": [
+        "嘉实基金管理有限公司",
+        "嘉实基金管理",
+        "嘉实基金",
+        "嘉实"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000223&fundType=002"
+    },
+    {
+      "rank": 16,
+      "company": "上海东方证券资产管理有限公司",
+      "company_id": "80145102",
+      "url": "https://fund.eastmoney.com/Company/80145102.html",
+      "mixed_yi": 875.9235,
+      "aliases": [
+        "上海东方证券资产管理有限公司",
+        "上海东方证券资产管理",
+        "东方红资产管理",
+        "上海东方证券",
+        "东证资管",
+        "东方红"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80145102&fundType=002"
+    },
+    {
+      "rank": 17,
+      "company": "华泰柏瑞基金管理有限公司",
+      "company_id": "80055334",
+      "url": "https://fund.eastmoney.com/Company/80055334.html",
+      "mixed_yi": 870.0579,
+      "aliases": [
+        "华泰柏瑞基金管理有限公司",
+        "华泰柏瑞基金管理",
+        "华泰柏瑞基金",
+        "华泰柏瑞"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80055334&fundType=002"
+    },
+    {
+      "rank": 18,
+      "company": "工银瑞信基金管理有限公司",
+      "company_id": "80064225",
+      "url": "https://fund.eastmoney.com/Company/80064225.html",
+      "mixed_yi": 864.309,
+      "aliases": [
+        "工银瑞信基金管理有限公司",
+        "工银瑞信基金管理",
+        "工银瑞信基金",
+        "工银瑞信"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80064225&fundType=002"
+    },
+    {
+      "rank": 19,
+      "company": "银华基金管理股份有限公司",
+      "company_id": "80000235",
+      "url": "https://fund.eastmoney.com/Company/80000235.html",
+      "mixed_yi": 863.071,
+      "aliases": [
+        "银华基金管理股份有限公司",
+        "银华基金管理",
+        "银华基金",
+        "银华"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80000235&fundType=002"
+    },
+    {
+      "rank": 20,
+      "company": "交银施罗德基金管理有限公司",
+      "company_id": "80064562",
+      "url": "https://fund.eastmoney.com/Company/80064562.html",
+      "mixed_yi": 837.6572,
+      "aliases": [
+        "交银施罗德基金管理有限公司",
+        "交银施罗德基金管理",
+        "交银施罗德基金",
+        "交银施罗德"
+      ],
+      "chart": "https://fund.eastmoney.com/Company/home/GetGmbdChart?gsid=80064562&fundType=002"
+    }
+  ]
+}
